@@ -35,7 +35,38 @@ public final class PixelCanvas {
 
     var canvasContainerSize: CGSize = .one
     var canvasCoordinate: CCanvasCoordinate = .zero
+    public var scale: CGFloat {
+        get {
+            canvasCoordinate.scale
+        }
+        set {
+            canvasCoordinate.scale = newValue
+            reFrame()
+        }
+    }
+    public var offset: CGPoint {
+        get {
+            canvasCoordinate.offset
+        }
+        set {
+            canvasCoordinate.offset = newValue
+            reFrame()
+        }
+    }
     var canvasContentFrame: CGRect = .one
+    public var frame: CGRect {
+        get {
+            canvasContentFrame
+        }
+        set {
+            guard let content: Content else { return }
+            canvasCoordinate = Self.coordinate(
+                contentResolution: content.resolution,
+                contentFrame: newValue,
+                containerSize: canvasContainerSize
+            )
+        }
+    }
 
     struct Zoom {
         let coordinate: CCanvasCoordinate
@@ -63,7 +94,7 @@ extension PixelCanvas {
         contentResolution: CGSize,
         contentFrame: CGRect,
         containerSize: CGSize,
-        padding: CGSize
+        padding: CGSize = .zero
     ) -> CCanvasCoordinate {
         
         let contentSize: CGSize = contentResolution.place(in: containerSize, placement: .fit)

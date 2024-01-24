@@ -14,8 +14,8 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
     
     public init(
         _ pixelCanvas: PixelCanvas,
-        background: @escaping (AnyView, CGRect) -> Background = { pixels, _ in pixels },
-        foreground: @escaping () -> Foreground = { EmptyView() }
+        @ViewBuilder background: @escaping (AnyView, CGRect) -> Background = { pixels, _ in pixels },
+        @ViewBuilder foreground: @escaping () -> Foreground = { EmptyView() }
     ) {
         _pixelCanvas = Bindable(pixelCanvas)
         self.background = background
