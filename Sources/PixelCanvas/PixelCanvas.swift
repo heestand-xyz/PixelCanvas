@@ -59,12 +59,7 @@ public final class PixelCanvas {
             canvasContentFrame
         }
         set {
-            guard let content: Content else { return }
-            canvasCoordinate = Self.coordinate(
-                contentResolution: content.resolution,
-                contentFrame: newValue,
-                containerSize: canvasContainerSize
-            )
+            reFrame()
         }
     }
 
