@@ -44,6 +44,10 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
             pixelCanvas.canvasContainerSize = newSize
             pixelCanvas.reFrame()
         }
+        .onAppear {
+            guard let resolution = pixelCanvas.content?.resolution else { return }
+            canvas.contentAspectRatio = resolution.aspectRatio
+        }
         .onChange(of: pixelCanvas.content?.resolution, { _, newResolution in
             guard let newResolution else { return }
             canvas.contentAspectRatio = newResolution.aspectRatio
