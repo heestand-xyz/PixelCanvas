@@ -114,7 +114,11 @@ extension PixelCanvas {
         } else {
             containerSize.width / contentCropFrame.width
         }
-        
+        print("------->", "\n",
+              "scale:", scale, "\n",
+              "padding:", padding, "\n",
+              "containerSize:", containerSize, "\n",
+              "contentCropFrame", contentCropFrame)
         let offset: CGPoint = -contentOrigin - contentCropFrame.origin * scale + centerOffset * scale
         
         return CCanvasCoordinate(
