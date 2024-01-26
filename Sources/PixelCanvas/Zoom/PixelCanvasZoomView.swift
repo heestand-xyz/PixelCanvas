@@ -2,6 +2,7 @@ import SwiftUI
 import Canvas
 import CoreGraphicsExtensions
 
+@available(iOS 17.0, macOS 14.0, visionOS 1.0, *)
 struct PixelCanvasZoomView: View {
     
     let image: Image

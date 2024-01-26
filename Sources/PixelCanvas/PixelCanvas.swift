@@ -5,8 +5,7 @@ import Combine
 import Canvas
 import CoreGraphicsExtensions
 
-@Observable
-public final class PixelCanvas {
+public final class PixelCanvas: ObservableObject {
     
     public enum Placement: Int {
         case stretch
@@ -31,10 +30,10 @@ public final class PixelCanvas {
         let image: Image
         let resolution: CGSize
     }
-    var content: Content?
+    @Published var content: Content?
 
-    var canvasContainerSize: CGSize = .one
-    var canvasCoordinate: CCanvasCoordinate = .zero
+    @Published var canvasContainerSize: CGSize = .one
+    @Published var canvasCoordinate: CCanvasCoordinate = .zero
     public var scale: CGFloat {
         get {
             canvasCoordinate.scale
@@ -53,7 +52,7 @@ public final class PixelCanvas {
             reFrame()
         }
     }
-    var canvasContentFrame: CGRect = .one
+    @Published var canvasContentFrame: CGRect = .one
     public var frame: CGRect {
         get {
             canvasContentFrame

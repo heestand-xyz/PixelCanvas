@@ -4,7 +4,7 @@ import CoreGraphicsExtensions
 
 public struct PixelCanvasView<Foreground: View, Background: View>: View {
     
-    @Bindable private var pixelCanvas: PixelCanvas
+    @ObservedObject private var pixelCanvas: PixelCanvas
     @StateObject private var canvas = CCanvas(physics: false)
     
     private let background: (_ pixels: AnyView, _ frame: CGRect) -> Background
@@ -17,7 +17,7 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
         @ViewBuilder background: @escaping (AnyView, CGRect) -> Background = { pixels, _ in pixels },
         @ViewBuilder foreground: @escaping () -> Foreground = { EmptyView() }
     ) {
-        _pixelCanvas = Bindable(pixelCanvas)
+        self.pixelCanvas = pixelCanvas
         self.background = background
         self.foreground = foreground
     }
@@ -35,11 +35,11 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
                 foreground()
             }
         }
-        .onChange(of: canvas.coordinate) { _, newCoordinate in
+        .onChange(of: canvas.coordinate) { newCoordinate in
             pixelCanvas.canvasCoordinate = newCoordinate
             pixelCanvas.reFrame()
         }
-        .onChange(of: size) { _, newSize in
+        .onChange(of: size) { newSize in
             canvas.size = newSize
             pixelCanvas.canvasContainerSize = newSize
             pixelCanvas.reFrame()
@@ -48,10 +48,10 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
             guard let resolution = pixelCanvas.content?.resolution else { return }
             canvas.contentAspectRatio = resolution.aspectRatio
         }
-        .onChange(of: pixelCanvas.content?.resolution, { _, newResolution in
+        .onChange(of: pixelCanvas.content?.resolution) { newResolution in
             guard let newResolution else { return }
             canvas.contentAspectRatio = newResolution.aspectRatio
-        })
+        }
         .onReceive(pixelCanvas.canvasZoom) { zoom in
             canvas.move(
                 to: zoom.coordinate,
@@ -63,15 +63,23 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
     @ViewBuilder
     private var pixelBody: some View {
         if let content: PixelCanvas.Content = pixelCanvas.content {
-            PixelCanvasZoomView(
-                image: content.image,
-                transform: PixelCanvas.transform(
-                    contentResolution: content.resolution,
-                    containerSize: size,
-                    coordinate: canvas.coordinate
-                ),
-                options: pixelCanvas.options
-            )
+            if #available(iOS 17.0, macOS 14.0, visionOS 1.0, *) {
+                PixelCanvasZoomView(
+                    image: content.image,
+                    transform: PixelCanvas.transform(
+                        contentResolution: content.resolution,
+                        containerSize: size,
+                        coordinate: canvas.coordinate
+                    ),
+                    options: pixelCanvas.options
+                )
+            } else {
+                PixelCanvasLayout(frame: pixelCanvas.canvasContentFrame) {
+                    content.image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                }
+            }
         }
     }
 }
