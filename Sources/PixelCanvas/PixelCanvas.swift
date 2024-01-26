@@ -16,9 +16,9 @@ public final class PixelCanvas: ObservableObject {
     
     public struct Options {
         public var animationDuration: TimeInterval = 1.0 / 3.0
-        public var checkerTransparency: Bool = false
+        public var checkerTransparency: Bool = true
         public var checkerOpacity: CGFloat = 0.5
-        public var checkerSize: CGFloat = 100
+        public var checkerSize: CGFloat = 64
         public var borderWidth: CGFloat = 1.0
         public var borderFadeRange: ClosedRange<CGFloat> = 25...50
         public var borderOpacity: CGFloat = 0.25
