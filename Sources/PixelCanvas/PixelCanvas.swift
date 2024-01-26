@@ -32,8 +32,8 @@ public final class PixelCanvas: ObservableObject {
     }
     @Published var content: Content?
 
-    @Published var canvasContainerSize: CGSize = .one
-    @Published var canvasCoordinate: CCanvasCoordinate = .zero
+    @Published public internal(set) var canvasContainerSize: CGSize = .one
+    @Published public internal(set) var canvasCoordinate: CCanvasCoordinate = .zero
     public var scale: CGFloat {
         get {
             canvasCoordinate.scale
@@ -75,7 +75,7 @@ public final class PixelCanvas: ObservableObject {
 
 extension PixelCanvas {
  
-    func coordinate(contentResolution: CGSize, contentFrame: CGRect? = nil, padding: CGSize) -> CCanvasCoordinate {
+    public func coordinate(contentResolution: CGSize, contentFrame: CGRect? = nil, padding: CGSize) -> CCanvasCoordinate {
         Self.coordinate(
             contentResolution: contentResolution,
             contentFrame: contentFrame ?? CGRect(origin: .zero, size: contentResolution),
