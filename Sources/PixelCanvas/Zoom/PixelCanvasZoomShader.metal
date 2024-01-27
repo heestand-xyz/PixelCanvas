@@ -50,6 +50,20 @@ float2 place(int place,
     return float2(u, v);
 }
 
+float checker(float2 uv, float checkerSize, uint2 resolution) {
+    int x = int(uv.x * float(resolution.x));
+    x -= resolution.x / 2;
+    int y = int(uv.y * float(resolution.y));
+    y -= resolution.y / 2;
+    int big = int(checkerSize);
+    while (big < 10000) {
+        big *= 2;
+    }
+    bool isX = ((x + big) / int(checkerSize)) % 2 == 0;
+    bool isY = ((y + big) / int(checkerSize)) % 2 == 0;
+    float light = isX ? (isY ? 0.75 : 0.25) : (isY ? 0.25 : 0.75);
+    return light;
+}
 
 [[ stitchable ]] half4 zoom(float2 position,
                             SwiftUI::Layer layer,
@@ -95,19 +109,20 @@ float2 place(int place,
         float checkerLight = 0.0;
         if ((uvPlacement.x > 0.0 && uvPlacement.x < 1.0) && (uvPlacement.y > 0.0 && uvPlacement.y < 1.0)) {
             inBounds = true;
-            int x = int(uvPlacement.x * float(inputWidth));
-            x -= inputWidth / 2;
-            int y = int(uvPlacement.y * float(inputHeight));
-            y -= inputHeight / 2;
-            int big = int(checkerSize);
-            while (big < 10000) {
-                big *= 2;
+            if (scale < 1.0) {
+                checkerLight = checker(uvPlacement, checkerSize, uint2(inputWidth, inputHeight)) * checkerOpacity;
+            } else {
+                float logScale = log2(scale);
+                float logFraction = logScale - floor(logScale);
+                float currentScalePower = pow(2.0, floor(logScale));
+                float nextScalePower = pow(2.0, floor(logScale) + 1.0);
+                float currentSize = max(1.0, checkerSize / currentScalePower);
+                float nextSize = max(1.0, checkerSize / nextScalePower);
+                float currentChecker = checker(uvPlacement, currentSize, uint2(inputWidth, inputHeight)) * checkerOpacity;
+                float nextChecker = checker(uvPlacement, nextSize, uint2(inputWidth, inputHeight)) * checkerOpacity;
+                float fadeFraction = max(0.0, logFraction * 10.0 - 9.0);
+                checkerLight = currentChecker * (1.0 - fadeFraction) + nextChecker * fadeFraction;
             }
-            bool isX = ((x + big) / int(checkerSize)) % 2 == 0;
-            bool isY = ((y + big) / int(checkerSize)) % 2 == 0;
-            float light = isX ? (isY ? 0.75 : 0.25) : (isY ? 0.25 : 0.75);
-            light *= checkerOpacity;
-            checkerLight = light;
         }
         color = half4(half3(checkerLight) * (1.0 - color.a) + color.rgb * color.a,
                        inBounds ? 0.5 + 0.5 * color.a : 0.0);
