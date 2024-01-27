@@ -91,34 +91,38 @@ extension PixelCanvas {
         padding: CGSize = .zero
     ) -> CCanvasCoordinate {
         
+        
         let contentSize: CGSize = contentResolution.place(in: containerSize, placement: .fit)
-        let resolutionScale = contentSize.height / contentResolution.height
-        let contentCropFrame = CGRect(
-            origin: contentFrame.origin * resolutionScale - padding,
-            size: contentFrame.size * resolutionScale + padding * 2
-        )
-        
         let containerAspectRatio: CGFloat = containerSize.aspectRatio
+
+        let resolutionScale = contentSize.height / contentResolution.height
+        var contentCropFrame = CGRect(
+            origin: contentFrame.origin * resolutionScale,
+            size: contentFrame.size * resolutionScale
+        )
         let contentCropAspectRatio: CGFloat = contentCropFrame.size.aspectRatio
-        
+        let cropScale: CGFloat = if contentCropAspectRatio > containerAspectRatio {
+            contentCropFrame.width / contentSize.width
+        } else {
+            contentCropFrame.height / contentSize.height
+        }
+        contentCropFrame = CGRect(origin: contentCropFrame.origin - padding * cropScale,
+                                  size: contentCropFrame.size + padding * 2 * cropScale)
+        let contentPaddingCropAspectRatio: CGFloat = contentCropFrame.size.aspectRatio
+
         let containerCropFillSize = CGSize(
-            width: containerAspectRatio < contentCropAspectRatio ? contentCropFrame.width : contentCropFrame.height * containerAspectRatio,
-            height: containerAspectRatio > contentCropAspectRatio ? contentCropFrame.height : contentCropFrame.width / containerAspectRatio
+            width: containerAspectRatio < contentPaddingCropAspectRatio ? contentCropFrame.width : contentCropFrame.height * containerAspectRatio,
+            height: containerAspectRatio > contentPaddingCropAspectRatio ? contentCropFrame.height : contentCropFrame.width / containerAspectRatio
         )
         
         let contentOrigin: CGPoint = (containerSize - contentSize).asPoint / 2
         let centerOffset: CGPoint = (containerCropFillSize - contentCropFrame.size).asPoint / 2
         
-        let scale: CGFloat = if containerAspectRatio > contentCropAspectRatio {
+        let scale: CGFloat = if containerAspectRatio > contentPaddingCropAspectRatio {
             containerSize.height / contentCropFrame.height
         } else {
             containerSize.width / contentCropFrame.width
         }
-        print("------->", "\n",
-              "scale:", scale, "\n",
-              "padding:", padding, "\n",
-              "containerSize:", containerSize, "\n",
-              "contentCropFrame", contentCropFrame)
         let offset: CGPoint = -contentOrigin - contentCropFrame.origin * scale + centerOffset * scale
         
         return CCanvasCoordinate(

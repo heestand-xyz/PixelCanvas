@@ -29,12 +29,12 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
             background(AnyView(pixelBody), pixelCanvas.canvasContentFrame)
             
             CCanvasView(canvas: canvas)
-                .read(size: $size)
             
             PixelCanvasLayout(frame: pixelCanvas.canvasContentFrame) {
                 foreground()
             }
         }
+        .read(size: $size)
         .onChange(of: canvas.coordinate) { newCoordinate in
             pixelCanvas.canvasCoordinate = newCoordinate
             pixelCanvas.reFrame()
