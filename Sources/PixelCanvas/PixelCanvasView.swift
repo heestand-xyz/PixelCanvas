@@ -73,6 +73,7 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
                     ),
                     options: pixelCanvas.options
                 )
+                .id(content.id)
             } else {
                 PixelCanvasLayout(frame: pixelCanvas.canvasContentFrame) {
                     content.image

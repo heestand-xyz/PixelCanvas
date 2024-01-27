@@ -27,6 +27,7 @@ public final class PixelCanvas: ObservableObject {
     public var options = Options()
     
     struct Content {
+        let id: UUID
         let image: Image
         let resolution: CGSize
     }
@@ -217,7 +218,7 @@ extension PixelCanvas {
     #endif
 
     public func load(image: Image, resolution: CGSize) {
-        self.content = Content(image: image, resolution: resolution)
+        self.content = Content(id: UUID(), image: image, resolution: resolution)
         reFrame()
     }
     
