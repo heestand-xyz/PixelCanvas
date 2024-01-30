@@ -12,7 +12,7 @@ import PixelCanvas
 
 struct ContentView: View {
     
-    @State private var pixelCanvas = PixelCanvas()
+    @StateObject private var pixelCanvas = PixelCanvas()
     
     var body: some View {
         PixelCanvasView(
