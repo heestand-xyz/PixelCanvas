@@ -93,7 +93,7 @@ extension PixelCanvas {
     ) -> CCanvasCoordinate {
         
         
-        let contentSize: CGSize = contentResolution.place(in: containerSize, placement: .fit)
+        let contentSize: CGSize = contentResolution.place(in: containerSize, placement: .fit, roundToPixels: false)
         let containerAspectRatio: CGFloat = containerSize.aspectRatio
 
         let resolutionScale = contentSize.height / contentResolution.height
@@ -153,7 +153,7 @@ extension PixelCanvas {
         coordinate: CCanvasCoordinate
     ) -> CGRect {
         let containerAspectRatio: CGFloat = containerSize.aspectRatio
-        let contentSize: CGSize = contentResolution.place(in: containerSize, placement: .fit)
+        let contentSize: CGSize = contentResolution.place(in: containerSize, placement: .fit, roundToPixels: false)
         let contentAspectRatio: CGFloat = contentSize.aspectRatio
         let contentOrigin: CGPoint = {
             if containerAspectRatio > contentAspectRatio {
@@ -187,7 +187,7 @@ extension PixelCanvas {
         let containerResolution: CGSize = containerSize * .pixelsPerPoint
         var offset = coordinate.offset
         offset /= coordinate.scale
-        let relativeSize: CGSize = contentResolution.place(in: containerSize, placement: .fit)
+        let relativeSize: CGSize = contentResolution.place(in: containerSize, placement: .fit, roundToPixels: false)
         var inspectOffset: CGPoint = ((offset + relativeSize / 2) * coordinate.scale - relativeSize / 2)
         inspectOffset /= relativeSize / containerSize
         inspectOffset /= coordinate.scale
