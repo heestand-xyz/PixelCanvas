@@ -76,12 +76,12 @@ public final class PixelCanvas: ObservableObject {
 
 extension PixelCanvas {
  
-    public func coordinate(contentResolution: CGSize, contentFrame: CGRect? = nil, padding: CGSize) -> CCanvasCoordinate {
+    public func coordinate(contentResolution: CGSize, contentFrame: CGRect? = nil, edgeInsets: EdgeInsets? = nil) -> CCanvasCoordinate {
         Self.coordinate(
             contentResolution: contentResolution,
             contentFrame: contentFrame ?? CGRect(origin: .zero, size: contentResolution),
             containerSize: canvasContainerSize,
-            padding: padding
+            edgeInsets: edgeInsets
         )
     }
     
@@ -89,7 +89,7 @@ extension PixelCanvas {
         contentResolution: CGSize,
         contentFrame: CGRect,
         containerSize: CGSize,
-        padding: CGSize = .zero
+        edgeInsets: EdgeInsets? = nil
     ) -> CCanvasCoordinate {
         
         
@@ -107,8 +107,13 @@ extension PixelCanvas {
         } else {
             contentCropFrame.height / contentSize.height
         }
-        contentCropFrame = CGRect(origin: contentCropFrame.origin - padding * cropScale,
-                                  size: contentCropFrame.size + padding * 2 * cropScale)
+        let topLeadingPadding = CGPoint(x: edgeInsets?.leading ?? 0.0,
+                                        y: edgeInsets?.top ?? 0.0)
+        let bottomTrailingPadding = CGPoint(x: edgeInsets?.trailing ?? 0.0,
+                                            y: edgeInsets?.bottom ?? 0.0)
+        let padding: CGSize = (topLeadingPadding + bottomTrailingPadding).asSize
+        contentCropFrame = CGRect(origin: contentCropFrame.origin - topLeadingPadding * cropScale,
+                                  size: contentCropFrame.size + padding * cropScale)
         let contentPaddingCropAspectRatio: CGFloat = contentCropFrame.size.aspectRatio
 
         let containerCropFillSize = CGSize(
@@ -262,14 +267,14 @@ extension PixelCanvas {
     /// - Parameters:
     ///   - padding: Padding in view points.
     public func zoomToFill(
-        padding: CGSize = .zero,
+        edgeInsets: EdgeInsets? = nil,
         animated: Bool = true
     ) {
         guard let content: Content else { return }
         zoom(
             to: coordinate(
                 contentResolution: content.resolution,
-                padding: padding
+                edgeInsets: edgeInsets
             ),
             animated: animated
         )
@@ -281,7 +286,7 @@ extension PixelCanvas {
     ///   - padding: Padding in view points.
     public func zoomToFrame(
         contentFrame: CGRect,
-        padding: CGSize = .zero,
+        edgeInsets: EdgeInsets? = nil,
         animated: Bool = true
     ) {
         guard let content: Content else { return }
@@ -289,7 +294,7 @@ extension PixelCanvas {
             to: coordinate(
                 contentResolution: content.resolution,
                 contentFrame: contentFrame,
-                padding: padding
+                edgeInsets: edgeInsets
             ),
             animated: animated
         )
