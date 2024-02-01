@@ -92,45 +92,46 @@ extension PixelCanvas {
         edgeInsets: EdgeInsets? = nil
     ) -> CCanvasCoordinate {
         
+        let paddingOrigin = CGPoint(x: edgeInsets?.leading ?? 0.0,
+                                        y: edgeInsets?.top ?? 0.0)
+        let paddingFar = CGPoint(x: edgeInsets?.trailing ?? 0.0,
+                                            y: edgeInsets?.bottom ?? 0.0)
+        let paddingSize: CGSize = (paddingOrigin + paddingFar).asSize
+        
+        let containerPaddingSize: CGSize = containerSize - paddingSize
+        let containerPaddingScale: CGSize = containerPaddingSize / containerSize
+        
+        let containerPaddingCenter: CGPoint = paddingOrigin + containerPaddingSize / 2
         
         let contentSize: CGSize = contentResolution.place(in: containerSize, placement: .fit, roundToPixels: false)
-        let containerAspectRatio: CGFloat = containerSize.aspectRatio
+        let contentPaddingSize: CGSize = contentResolution.place(in: containerPaddingSize, placement: .fit, roundToPixels: false)
+        let containerPaddingAspectRatio: CGFloat = containerPaddingSize.aspectRatio
 
-        let resolutionScale = contentSize.height / contentResolution.height
-        var contentCropFrame = CGRect(
+        let resolutionScale = contentPaddingSize.height / contentResolution.height
+        
+        let contentCropAspectRatio: CGFloat = contentFrame.size.aspectRatio
+        let contentCropFrame = CGRect(
             origin: contentFrame.origin * resolutionScale,
             size: contentFrame.size * resolutionScale
         )
-        let contentCropAspectRatio: CGFloat = contentCropFrame.size.aspectRatio
-        let cropScale: CGFloat = if contentCropAspectRatio > containerAspectRatio {
-            contentCropFrame.width / contentSize.width
+        
+        let scale: CGFloat = if containerPaddingAspectRatio > contentCropAspectRatio {
+            (containerPaddingSize.height / contentCropFrame.height) * containerPaddingScale.height
         } else {
-            contentCropFrame.height / contentSize.height
+            (containerPaddingSize.width / contentCropFrame.width) * containerPaddingScale.width
         }
-        let topLeadingPadding = CGPoint(x: edgeInsets?.leading ?? 0.0,
-                                        y: edgeInsets?.top ?? 0.0)
-        let bottomTrailingPadding = CGPoint(x: edgeInsets?.trailing ?? 0.0,
-                                            y: edgeInsets?.bottom ?? 0.0)
-        let padding: CGSize = (topLeadingPadding + bottomTrailingPadding).asSize
-        contentCropFrame = CGRect(origin: contentCropFrame.origin - topLeadingPadding * cropScale,
-                                  size: contentCropFrame.size + padding * cropScale)
-        let contentPaddingCropAspectRatio: CGFloat = contentCropFrame.size.aspectRatio
+        let homeScale: CGFloat = if containerPaddingAspectRatio > contentCropAspectRatio {
+            (containerPaddingSize.height / contentPaddingSize.height) * containerPaddingScale.height
+        } else {
+            (containerPaddingSize.width / contentPaddingSize.width) * containerPaddingScale.width
+        }
+        let relativityScale: CGFloat = scale / homeScale
+                
+        var offset: CGPoint = .zero
+        let relativeContentPaddingSize: CGSize = contentPaddingSize.place(in: contentSize, placement: .fit, roundToPixels: false)
+        offset += ((relativeContentPaddingSize - contentPaddingSize * relativityScale) / 2)
+        offset += containerPaddingCenter.asSize - containerSize / 2
 
-        let containerCropFillSize = CGSize(
-            width: containerAspectRatio < contentPaddingCropAspectRatio ? contentCropFrame.width : contentCropFrame.height * containerAspectRatio,
-            height: containerAspectRatio > contentPaddingCropAspectRatio ? contentCropFrame.height : contentCropFrame.width / containerAspectRatio
-        )
-        
-        let contentOrigin: CGPoint = (containerSize - contentSize).asPoint / 2
-        let centerOffset: CGPoint = (containerCropFillSize - contentCropFrame.size).asPoint / 2
-        
-        let scale: CGFloat = if containerAspectRatio > contentPaddingCropAspectRatio {
-            containerSize.height / contentCropFrame.height
-        } else {
-            containerSize.width / contentCropFrame.width
-        }
-        let offset: CGPoint = -contentOrigin - contentCropFrame.origin * scale + centerOffset * scale
-        
         return CCanvasCoordinate(
             offset: offset,
             scale: scale,
@@ -211,20 +212,23 @@ extension PixelCanvas {
 extension PixelCanvas {
  
     #if os(macOS)
+    @MainActor
     public func load(image: NSImage) {
         load(image: Image(nsImage: image),
              resolution: image.size * image.scale)
     }
     #else
+    @MainActor
     public func load(image: UIImage) {
         load(image: Image(uiImage: image),
              resolution: image.size * image.scale)
     }
     #endif
 
+    @MainActor
     public func load(image: Image, resolution: CGSize) {
         self.content = Content(id: UUID(), image: image, resolution: resolution)
-        reFrame()
+        self.reFrame()
     }
     
     public func unload() {
@@ -236,6 +240,7 @@ extension PixelCanvas {
 
 extension PixelCanvas {
     
+    @MainActor
     private func zoom(
         to coordinate: CCanvasCoordinate,
         animated: Bool = true
@@ -247,6 +252,7 @@ extension PixelCanvas {
         canvasZoom.send(zoom)
     }
     
+    @MainActor
     public func zoomToLocation(
         offset: CGPoint,
         scale: CGFloat,
@@ -266,6 +272,7 @@ extension PixelCanvas {
     /// Zoom to Fill
     /// - Parameters:
     ///   - padding: Padding in view points.
+    @MainActor
     public func zoomToFill(
         edgeInsets: EdgeInsets? = nil,
         animated: Bool = true
@@ -284,6 +291,7 @@ extension PixelCanvas {
     /// - Parameters:
     ///   - contentFrame: A frame in pixels, top left is zero.
     ///   - padding: Padding in view points.
+    @MainActor
     public func zoomToFrame(
         contentFrame: CGRect,
         edgeInsets: EdgeInsets? = nil,
