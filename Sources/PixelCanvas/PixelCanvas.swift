@@ -115,6 +115,11 @@ extension PixelCanvas {
             size: contentFrame.size * resolutionScale
         )
         
+        print("-------->", containerPaddingAspectRatio > contentCropAspectRatio, "\n",
+              "containerPaddingAspectRatio:", containerPaddingAspectRatio,"\n",
+              "contentCropAspectRatio:", contentCropAspectRatio,"\n",
+              "contentSize.aspectRatio:", contentSize.aspectRatio,"\n",
+              "containerSize.aspectRatio:", containerSize.aspectRatio)
         let scale: CGFloat = if containerPaddingAspectRatio > contentCropAspectRatio {
             (containerPaddingSize.height / contentCropFrame.height) * containerPaddingScale.height
         } else {
@@ -131,6 +136,8 @@ extension PixelCanvas {
         let relativeContentPaddingSize: CGSize = contentPaddingSize.place(in: contentSize, placement: .fit, roundToPixels: false)
         offset += ((relativeContentPaddingSize - contentPaddingSize * relativityScale) / 2)
         offset += containerPaddingCenter.asSize - containerSize / 2
+        
+        offset -= (contentCropFrame.center - contentPaddingSize.asPoint / 2) * relativityScale
 
         return CCanvasCoordinate(
             offset: offset,
@@ -231,6 +238,7 @@ extension PixelCanvas {
         self.reFrame()
     }
     
+    @MainActor
     public func unload() {
         self.content = nil
     }
