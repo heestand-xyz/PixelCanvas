@@ -34,7 +34,7 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
                 foreground()
             }
         }
-        .read(size: $size)
+        .readGeometry(size: $size)
         .onChange(of: canvas.coordinate) { newCoordinate in
             pixelCanvas.canvasCoordinate = newCoordinate
             pixelCanvas.reFrame()
