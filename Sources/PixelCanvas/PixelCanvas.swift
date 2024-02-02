@@ -397,43 +397,39 @@ extension PixelCanvas {
 
 extension PixelCanvas: CCanvasDelegate {
     
-    public func canvasDragHitTest(at position: CGPoint, coordinate: CCanvasCoordinate) -> CCanvasDrag? {
-        nil
-    }
+    public func canvasDragHitTest(at position: CGPoint, coordinate: CCanvasCoordinate) -> CCanvasDrag? { nil }
     
-    public func canvasDragGetPosition(_ drag: CCanvasDrag, coordinate: CCanvasCoordinate) -> CGPoint? {
-        nil
-    }
+    public func canvasDragGetPosition(_ drag: CCanvasDrag, coordinate: CCanvasCoordinate) -> CGPoint? { nil }
     
-    public func canvasDragSetPosition(_ drag: CCanvasDrag, to position: CGPoint, coordinate: CCanvasCoordinate) {
-        
-    }
+    public func canvasDragSetPosition(_ drag: CCanvasDrag, to position: CGPoint, coordinate: CCanvasCoordinate) {}
     
-    public func canvasDragStarted(_ drag: CCanvasDrag, at position: CGPoint, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
-        
-    }
+    public func canvasDragStarted(_ drag: CCanvasDrag, at position: CGPoint, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
     
-    public func canvasDragReleased(_ drag: CCanvasDrag, at position: CGPoint, ignoreTap: Bool, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
-        
-    }
+    public func canvasDragReleased(_ drag: CCanvasDrag, at position: CGPoint, ignoreTap: Bool, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
     
-    public func canvasDragWillEnd(_ drag: CCanvasDrag, at position: CGPoint, coordinate: CCanvasCoordinate) {
-        
-    }
+    public func canvasDragWillEnd(_ drag: CCanvasDrag, at position: CGPoint, coordinate: CCanvasCoordinate) {}
     
-    public func canvasDragDidEnd(_ drag: CCanvasDrag, at position: CGPoint, coordinate: CCanvasCoordinate) {
-        
-    }
+    public func canvasDragDidEnd(_ drag: CCanvasDrag, at position: CGPoint, coordinate: CCanvasCoordinate) {}
     
     public func canvasMoveStarted(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
         isMoving = true
     }
     
-    public func canvasMoveUpdated(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
-        
-    }
+    public func canvasMoveUpdated(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
     
     public func canvasMoveEnded(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
         isMoving = false
     }
+    
+    #if os(macOS)
+
+    public func canvasSelectionStarted(at position: CGPoint, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
+    
+    public func canvasSelectionChanged(to position: CGPoint, coordinate: CCanvasCoordinate) {}
+    
+    public func canvasSelectionEnded(at position: CGPoint, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
+    
+    public func canvasCustomMouseButtonPress(at position: CGPoint, with customMouseButton: CCustomMouseButton, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
+    
+    #endif
 }
