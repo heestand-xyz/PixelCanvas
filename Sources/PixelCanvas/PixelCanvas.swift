@@ -201,8 +201,7 @@ extension PixelCanvas {
 //        
 ////        offset -= (contentCropFrame.center - contentPaddingSize.asPoint / 2) * relativeScale
 //        
-//        print("-------->", "\n",
-//              "container aspect ratio with padding:", containerPaddingSize.aspectRatio,"\n",
+//        print("container aspect ratio with padding:", containerPaddingSize.aspectRatio,"\n",
 //              "content crop aspect ratio:", contentCropFrame.size.aspectRatio,"\n",
 //              "isWide:", isWide, "\n",
 //              "container aspect ratio:", containerSize.aspectRatio, "\n",
@@ -427,7 +426,6 @@ extension PixelCanvas: CCanvasDelegate {
     }
     
     public func canvasMoveStarted(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
-        print("------> START")
         isMoving = true
     }
     
@@ -436,7 +434,6 @@ extension PixelCanvas: CCanvasDelegate {
     }
     
     public func canvasMoveEnded(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
-        print("------> END")
         isMoving = false
     }
 }
