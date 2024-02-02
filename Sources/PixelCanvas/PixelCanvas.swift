@@ -33,6 +33,8 @@ public final class PixelCanvas: ObservableObject {
     }
     @Published var content: Content?
 
+    @Published public private(set) var isMoving: Bool = false
+    
     @Published public internal(set) var canvasContainerSize: CGSize = .one
     @Published public internal(set) var canvasCoordinate: CCanvasCoordinate = .zero
     /// Canvas Scale
@@ -389,5 +391,52 @@ extension PixelCanvas {
             ),
             animated: animated
         )
+    }
+}
+
+// MARK: Canvas Delegate
+
+extension PixelCanvas: CCanvasDelegate {
+    
+    public func canvasDragHitTest(at position: CGPoint, coordinate: CCanvasCoordinate) -> CCanvasDrag? {
+        nil
+    }
+    
+    public func canvasDragGetPosition(_ drag: CCanvasDrag, coordinate: CCanvasCoordinate) -> CGPoint? {
+        nil
+    }
+    
+    public func canvasDragSetPosition(_ drag: CCanvasDrag, to position: CGPoint, coordinate: CCanvasCoordinate) {
+        
+    }
+    
+    public func canvasDragStarted(_ drag: CCanvasDrag, at position: CGPoint, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
+        
+    }
+    
+    public func canvasDragReleased(_ drag: CCanvasDrag, at position: CGPoint, ignoreTap: Bool, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
+        
+    }
+    
+    public func canvasDragWillEnd(_ drag: CCanvasDrag, at position: CGPoint, coordinate: CCanvasCoordinate) {
+        
+    }
+    
+    public func canvasDragDidEnd(_ drag: CCanvasDrag, at position: CGPoint, coordinate: CCanvasCoordinate) {
+        
+    }
+    
+    public func canvasMoveStarted(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
+        print("------> START")
+        isMoving = true
+    }
+    
+    public func canvasMoveUpdated(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
+        
+    }
+    
+    public func canvasMoveEnded(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
+        print("------> END")
+        isMoving = false
     }
 }
