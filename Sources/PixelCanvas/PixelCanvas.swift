@@ -35,6 +35,7 @@ public final class PixelCanvas: ObservableObject {
 
     @Published public internal(set) var canvasContainerSize: CGSize = .one
     @Published public internal(set) var canvasCoordinate: CCanvasCoordinate = .zero
+    /// Canvas Scale
     public var scale: CGFloat {
         get {
             canvasCoordinate.scale
@@ -44,6 +45,7 @@ public final class PixelCanvas: ObservableObject {
             reFrame()
         }
     }
+    /// Canvas Offset
     public var offset: CGPoint {
         get {
             canvasCoordinate.offset
@@ -53,7 +55,8 @@ public final class PixelCanvas: ObservableObject {
             reFrame()
         }
     }
-    @Published var canvasContentFrame: CGRect = .one
+    @Published public internal(set) var canvasContentFrame: CGRect = .one
+    /// Content Frame
     public var frame: CGRect {
         get {
             canvasContentFrame
