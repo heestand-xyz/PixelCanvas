@@ -85,6 +85,7 @@ float checker(float2 uv, float checkerSize, uint2 resolution) {
     float2 uv = (position * pixelsPerPoint) / containerResolution;
     
     // Resolution
+    float2 textureResolution = float2(texture.get_width(), texture.get_height()); // contentResolution;
     uint inputWidth = contentResolution.x;
     uint inputHeight = contentResolution.y;
     uint outputWidth = containerResolution.x;
@@ -95,7 +96,7 @@ float checker(float2 uv, float checkerSize, uint2 resolution) {
     float2 uvScale = float2(scale, scale);
     uvPlacement = (uvPlacement - 0.5) / uvScale + 0.5;
     uvPlacement -= offset / float2(outputWidth, outputHeight);
-    uint2 location = uint2(uvPlacement * contentResolution);
+    uint2 location = uint2(uvPlacement * textureResolution);
     
     // Texture
     half4 color = texture.read(location);
