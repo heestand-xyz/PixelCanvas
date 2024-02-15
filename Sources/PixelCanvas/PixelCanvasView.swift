@@ -64,7 +64,8 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
     @ViewBuilder
     private var pixelBody: some View {
         if let content: PixelCanvas.Content = pixelCanvas.content {
-            if #available(iOS 17.0, macOS 14.0, visionOS 1.0, *) {
+            if #available(iOS 17.0, macOS 14.0, visionOS 1.0, *),
+               !pixelCanvas.options.alwaysUseImageCanvas {
                 PixelCanvasZoomView(
                     image: content.image,
                     transform: PixelCanvas.transform(

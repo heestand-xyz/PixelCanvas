@@ -23,6 +23,7 @@ public final class PixelCanvas: ObservableObject {
         public var borderFadeRange: ClosedRange<CGFloat> = 25...50
         public var borderOpacity: CGFloat = 0.25
         public var placement: Placement = .fit
+        public var alwaysUseImageCanvas: Bool = false
     }
     public var options = Options()
     
