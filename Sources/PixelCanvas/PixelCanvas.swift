@@ -5,7 +5,14 @@ import Combine
 import Canvas
 import CoreGraphicsExtensions
 
+public protocol PixelCanvasDelegate: AnyObject {
+    
+    func pixelCanvasDidTap(at position: CGPoint, with coordinate: CCanvasCoordinate)
+}
+
 public final class PixelCanvas: ObservableObject {
+    
+    public weak var delegate: PixelCanvasDelegate?
     
     public enum Placement: Int {
         case stretch
@@ -422,7 +429,7 @@ extension PixelCanvas: CCanvasDelegate {
         isMoving = false
     }
     
-    #if os(macOS)
+#if os(macOS)
 
     public func canvasSelectionStarted(at position: CGPoint, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
     
@@ -432,5 +439,15 @@ extension PixelCanvas: CCanvasDelegate {
     
     public func canvasCustomMouseButtonPress(at position: CGPoint, with customMouseButton: CCustomMouseButton, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
     
-    #endif
+    public func canvasClick(count: Int, at position: CGPoint, with mouseButton: CCanvasInteractionInfo.MouseButton, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
+        delegate?.pixelCanvasDidTap(at: position, with: coordinate)
+    }
+    
+#else
+    
+    public func canvasTap(count: Int, at position: CGPoint, coordinate: CCanvasCoordinate) {
+        delegate?.pixelCanvasDidTap(at: position, with: coordinate)
+    }
+    
+#endif
 }
