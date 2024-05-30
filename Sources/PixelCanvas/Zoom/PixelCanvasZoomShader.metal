@@ -141,7 +141,14 @@ float checker(float2 uv, float checkerSize, uint2 resolution) {
                                 uvResolution.y - float(int(uvResolution.y)));
         if (!(uvPixel.x > uvBorder.x && uvPixel.x < 1.0 - uvBorder.x) || !(uvPixel.y > uvBorder.y && uvPixel.y < 1.0 - uvBorder.y)) {
             float brightness = (color.r + color.g + color.b) / 3;
-            float borderAlpha = borderOpacity;
+            float xPositiveFade = min(uvPixel.x / uvBorder.x, 1.0);
+            float xNegativeFade = min((1.0 - uvPixel.x) / uvBorder.x, 1.0);
+            float xFade = xPositiveFade * xNegativeFade;
+            float yPositiveFade = min(uvPixel.y / uvBorder.y, 1.0);
+            float yNegativeFade = min((1.0 - uvPixel.y) / uvBorder.y, 1.0);
+            float yFade = yPositiveFade * yNegativeFade;
+            float fade = xFade * yFade;
+            float borderAlpha = borderOpacity * (1.0 - fade);
             half4 borderColor = half4(half3(brightness < 0.5 ? 1.0 : 0.0), borderAlpha * zoomFade);
             color = half4(color.rgb * (1.0 - borderColor.a) + borderColor.rgb * borderColor.a, max(color.a, borderColor.a));
         }
