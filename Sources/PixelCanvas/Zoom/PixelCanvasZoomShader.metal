@@ -101,7 +101,7 @@ float checker(float2 uv, float checkerSize, uint2 resolution) {
     // Texture
     half4 color = texture.read(location);
     if (uvPlacement.x < 0.0 || uvPlacement.x > 1.0 || uvPlacement.y < 0.0 || uvPlacement.y > 1.0) {
-        color = 0.0;
+        return 0.0;
     }
     
     // Checker
