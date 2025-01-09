@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/heestand-xyz/Canvas",
       "state" : {
-        "revision" : "3d6f2186362a7a369e124446af022ba36bfc296f",
-        "version" : "2.1.0"
+        "revision" : "d39be35a1d77b1e9e7ba8724b5593f35e93643c2",
+        "version" : "2.5.0"
       }
     },
     {
@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/heestand-xyz/CoreGraphicsExtensions",
       "state" : {
-        "revision" : "c80edf108cd5701771470e818b7d0abcd293d531",
-        "version" : "1.7.0"
+        "revision" : "a95735b2522f6e2ba9ab8a59fbf742e1723212ed",
+        "version" : "2.0.0"
       }
     },
     {
@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/heestand-xyz/DisplayLink",
       "state" : {
-        "revision" : "0ef682f0221b126a23047080c123d86a3ceb12eb",
-        "version" : "1.1.0"
+        "revision" : "e76ded3edb36b8b4ccfbe0c4a83c113c3fa9bef5",
+        "version" : "2.0.1"
       }
     },
     {
@@ -41,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/heestand-xyz/MultiViews",
       "state" : {
-        "revision" : "c717d0dcf791ef15ae151b124d0b653ce93b7702",
-        "version" : "2.2.0"
+        "revision" : "cfb3c945f89adebc13fa3c85f8cfa37f41946683",
+        "version" : "3.0.0"
       }
     },
     {
