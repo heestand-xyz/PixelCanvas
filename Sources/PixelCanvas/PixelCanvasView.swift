@@ -24,11 +24,8 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
     }
     
     public var body: some View {
-        
         ZStack {
-            
             background(AnyView(pixelBody), pixelCanvas.contentFrame)
-            
             GestureCanvasView(canvas: gestureCanvas) { $0 } content: {
                 PixelCanvasLayout(frame: pixelCanvas.contentFrame) {
                     foreground()
@@ -36,6 +33,11 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
             }
         }
         .readGeometry(size: $size)
+        .onAppear {
+            gestureCanvas.minimumScale = 0.1
+            gestureCanvas.maximumScale = nil
+            gestureCanvas.delegate = pixelCanvas
+        }
         .onChange(of: gestureCanvas.coordinate) { _, newCoordinate in
             pixelCanvas.coordinate = newCoordinate
             pixelCanvas.reFrame()
@@ -44,12 +46,12 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
             pixelCanvas.containerSize = newSize
             pixelCanvas.reFrame()
         }
-        .onAppear {
-            // pixelCanvas.options.animationDuration ...
-            gestureCanvas.minimumScale = 0.1
-            gestureCanvas.maximumScale = nil
-            gestureCanvas.delegate = pixelCanvas
+#if !os(macOS)
+        .onReceive(pixelCanvas.pinchCoordinateOffsetUpdate) { offset in
+            print("------->", offset)
+            gestureCanvas.pinchCoordinateOffset = offset
         }
+#endif
         .onChange(of: pixelCanvas.content?.resolution) { _, resolution in
             if let resolution: CGSize {
                 gestureCanvas.maximumScale = max(resolution.width, resolution.height) / 2
@@ -65,8 +67,7 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
     @ViewBuilder
     private var pixelBody: some View {
         if let content: PixelCanvas.Content = pixelCanvas.content {
-            if #available(iOS 17.0, macOS 14.0, visionOS 1.0, *),
-               !pixelCanvas.options.alwaysUseImageCanvas {
+            if !pixelCanvas.options.alwaysUseImageCanvas {
                 PixelCanvasZoomView(
                     image: content.image,
                     transform: PixelCanvas.transform(
