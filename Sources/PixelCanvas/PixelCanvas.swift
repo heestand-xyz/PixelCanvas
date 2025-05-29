@@ -11,9 +11,9 @@ public protocol PixelCanvasDelegate: AnyObject {
     
     func pixelCanvasDidTap(at location: CGPoint, with coordinate: GestureCanvasCoordinate)
     
-//#if !os(macOS)
-//    func pixelCanvasAllowPinchToZoom(_ canvas: PixelCanvas) -> Bool
-//#endif
+#if !os(macOS)
+    func pixelCanvasAllowPinch(_ canvas: PixelCanvas) -> Bool
+#endif
 }
 
 @MainActor
@@ -425,7 +425,9 @@ extension PixelCanvas: GestureCanvasDelegate {
     public func gestureCanvasContext(at location: CGPoint) -> CGPoint? { nil }
     public func gestureCanvasEditMenuInteractionDelegate() -> UIEditMenuInteractionDelegate? { nil }
 
-    public func gestureCanvasAllowPinch(_ canvas: GestureCanvas) -> Bool { true }
+    public func gestureCanvasAllowPinch(_ canvas: GestureCanvas) -> Bool {
+        delegate?.pixelCanvasAllowPinch(self) ?? true
+    }
 #endif
     
     public func gestureCanvasDidStartPan(_ canvas: GestureCanvas) {

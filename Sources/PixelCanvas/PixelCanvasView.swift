@@ -48,7 +48,6 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
         }
 #if !os(macOS)
         .onReceive(pixelCanvas.pinchCoordinateOffsetUpdate) { offset in
-            print("------->", offset)
             gestureCanvas.pinchCoordinateOffset = offset
         }
 #endif
