@@ -15,15 +15,17 @@ let package = Package(
             targets: ["PixelCanvas"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/heestand-xyz/Canvas", from: "2.5.0"),
+        .package(url: "https://github.com/heestand-xyz/GestureCanvas", from: "1.4.0"),
         .package(url: "https://github.com/heestand-xyz/CoreGraphicsExtensions", from: "2.0.1"),
+        .package(url: "https://github.com/heestand-xyz/TextureMap", from: "2.2.0"),
     ],
     targets: [
         .target(
             name: "PixelCanvas",
             dependencies: [
-                "Canvas",
+                "GestureCanvas",
                 "CoreGraphicsExtensions",
+                "TextureMap",
             ]),
     ]
 )

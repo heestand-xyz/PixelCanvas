@@ -2,15 +2,23 @@ import Foundation
 import Observation
 import SwiftUI
 import Combine
-import Canvas
+import GestureCanvas
 import CoreGraphicsExtensions
+import TextureMap
 
+@MainActor
 public protocol PixelCanvasDelegate: AnyObject {
     
-    func pixelCanvasDidTap(at position: CGPoint, with coordinate: CCanvasCoordinate)
+    func pixelCanvasDidTap(at location: CGPoint, with coordinate: GestureCanvasCoordinate)
+    
+//#if !os(macOS)
+//    func pixelCanvasAllowPinchToZoom(_ canvas: PixelCanvas) -> Bool
+//#endif
 }
 
-public final class PixelCanvas: ObservableObject {
+@MainActor
+@Observable
+public final class PixelCanvas {
     
     public weak var delegate: PixelCanvasDelegate?
     
@@ -39,37 +47,79 @@ public final class PixelCanvas: ObservableObject {
         let image: Image
         let resolution: CGSize
     }
-    @Published var content: Content?
-
-    @Published public private(set) var isMoving: Bool = false
+    var content: Content?
     
-    @Published public internal(set) var canvasContainerSize: CGSize = .one
-    @Published public internal(set) var canvasCoordinate: CCanvasCoordinate = .zero
+    public private(set) var isPanning: Bool = false {
+        didSet { isMovingContinuation?.yield(isMoving) }
+    }
+    public private(set) var isZooming: Bool = false {
+        didSet { isMovingContinuation?.yield(isMoving) }
+    }
+    public var isMoving: Bool {
+        isPanning || isZooming
+    }
+    @ObservationIgnored
+    public private(set) lazy var isMovingStream = AsyncStream<Bool> { [weak self] continuation in
+        self?.isMovingContinuation = continuation
+    }
+    @ObservationIgnored
+    private var isMovingContinuation: AsyncStream<Bool>.Continuation?
+    
+    public internal(set) var containerSize: CGSize = .one {
+        didSet { containerSizeContinuation?.yield(containerSize) }
+    }
+    @ObservationIgnored
+    public private(set) lazy var containerSizeStream = AsyncStream<CGSize> { [weak self] continuation in
+        self?.containerSizeContinuation = continuation
+    }
+    @ObservationIgnored
+    private var containerSizeContinuation: AsyncStream<CGSize>.Continuation?
+    
+    public internal(set) var coordinate: GestureCanvasCoordinate = .zero {
+        didSet { coordinateContinuation?.yield(coordinate) }
+    }
+    @ObservationIgnored
+    public private(set) lazy var coordinateStream = AsyncStream<GestureCanvasCoordinate> { [weak self] continuation in
+        self?.coordinateContinuation = continuation
+    }
+    @ObservationIgnored
+    private var coordinateContinuation: AsyncStream<GestureCanvasCoordinate>.Continuation?
+    
     /// Canvas Scale
     public var scale: CGFloat {
         get {
-            canvasCoordinate.scale
+            coordinate.scale
         }
         set {
-            canvasCoordinate.scale = newValue
+            coordinate.scale = newValue
             reFrame()
         }
     }
     /// Canvas Offset
     public var offset: CGPoint {
         get {
-            canvasCoordinate.offset
+            coordinate.offset
         }
         set {
-            canvasCoordinate.offset = newValue
+            coordinate.offset = newValue
             reFrame()
         }
     }
-    @Published public internal(set) var canvasContentFrame: CGRect = .one
+    
+    public internal(set) var contentFrame: CGRect = .one {
+        didSet { contentFrameContinuation?.yield(contentFrame) }
+    }
+    @ObservationIgnored
+    public private(set) lazy var contentFrameStream = AsyncStream<CGRect> { [weak self] continuation in
+        self?.contentFrameContinuation = continuation
+    }
+    @ObservationIgnored
+    private var contentFrameContinuation: AsyncStream<CGRect>.Continuation?
+    
     /// Content Frame
     public var frame: CGRect {
         get {
-            canvasContentFrame
+            contentFrame
         }
         set {
             reFrame()
@@ -77,7 +127,7 @@ public final class PixelCanvas: ObservableObject {
     }
 
     struct Zoom {
-        let coordinate: CCanvasCoordinate
+        let coordinate: GestureCanvasCoordinate
         let animated: Bool
     }
     let canvasZoom = PassthroughSubject<Zoom, Never>()
@@ -89,11 +139,11 @@ public final class PixelCanvas: ObservableObject {
 
 extension PixelCanvas {
  
-    public func coordinate(contentResolution: CGSize, contentFrame: CGRect? = nil, edgeInsets: EdgeInsets? = nil) -> CCanvasCoordinate {
+    public func coordinate(contentResolution: CGSize, contentFrame: CGRect? = nil, edgeInsets: EdgeInsets? = nil) -> GestureCanvasCoordinate {
         Self.coordinate(
             contentResolution: contentResolution,
             contentFrame: contentFrame ?? CGRect(origin: .zero, size: contentResolution),
-            containerSize: canvasContainerSize,
+            containerSize: containerSize,
             edgeInsets: edgeInsets
         )
     }
@@ -103,7 +153,7 @@ extension PixelCanvas {
         contentFrame: CGRect,
         containerSize: CGSize,
         edgeInsets: EdgeInsets? = nil
-    ) -> CCanvasCoordinate {
+    ) -> GestureCanvasCoordinate {
         
         let contentSize: CGSize = contentResolution.place(in: containerSize, placement: .fit, roundToPixels: false)
         let containerAspectRatio: CGFloat = containerSize.aspectRatio
@@ -143,92 +193,11 @@ extension PixelCanvas {
         }
         let offset: CGPoint = -contentOrigin - contentCropFrame.origin * scale + centerOffset * scale
         
-        return CCanvasCoordinate(
+        return GestureCanvasCoordinate(
             offset: offset,
-            scale: scale,
-            angle: .zero
+            scale: scale
         )
     }
-    
-//    private static func coordinate(
-//        contentResolution: CGSize,
-//        contentFrame: CGRect,
-//        containerSize: CGSize,
-//        edgeInsets: EdgeInsets? = nil
-//    ) -> CCanvasCoordinate {
-//        
-//        let paddingOrigin = CGPoint(x: edgeInsets?.leading ?? 0.0,
-//                                    y: edgeInsets?.top ?? 0.0)
-//        let paddingFar = CGPoint(x: edgeInsets?.trailing ?? 0.0,
-//                                 y: edgeInsets?.bottom ?? 0.0)
-//        let paddingSize: CGSize = (paddingOrigin + paddingFar).asSize
-//        
-//        let containerPaddingSize: CGSize = containerSize - paddingSize
-//        let containerPaddingScale: CGSize = containerPaddingSize / containerSize
-//        
-//        let containerPaddingCenter: CGPoint = paddingOrigin + containerPaddingSize / 2
-//        
-//        let contentSize: CGSize = contentResolution.place(in: containerPaddingSize, placement: .fit, roundToPixels: false)
-//        let contentPaddingSize: CGSize = contentResolution.place(in: containerPaddingSize, placement: .fit, roundToPixels: false)
-//
-//        let resolutionScale = contentSize.height / contentResolution.height
-//        let contentCropFrame = CGRect(
-//            origin: contentFrame.origin * resolutionScale,
-//            size: contentFrame.size * resolutionScale
-//        )
-//        
-////        let isWide: Bool = false
-////        let isWide: Bool = containerPaddingSize.aspectRatio < 1.0
-//        let isWide: Bool = containerSize.aspectRatio > containerPaddingSize.aspectRatio
-////        let isWide: Bool = contentCropFrame.size.aspectRatio > containerPaddingSize.aspectRatio
-//        let isSquare: Bool = containerPaddingSize.aspectRatio == contentCropFrame.size.aspectRatio
-//        
-//        let xScale: CGFloat = (containerPaddingSize.width / contentCropFrame.width) * containerPaddingScale.width
-//        let yScale: CGFloat = (containerPaddingSize.height / contentCropFrame.height) * containerPaddingScale.height
-//        var dynamicScale: CGFloat = isWide ? xScale : yScale
-//        if isSquare {
-////            dynamicScale = 1.0
-//        }
-//        
-//        let xHomeScale: CGFloat = (containerPaddingSize.width / contentPaddingSize.width) * containerPaddingScale.width
-//        let yHomeScale: CGFloat = (containerPaddingSize.height / contentPaddingSize.height) * containerPaddingScale.height
-//        var dynamicHomeScale: CGFloat = isWide ? xHomeScale : yHomeScale//homeScale
-//        if isSquare {
-////            dynamicHomeScale = 1.0
-//        }
-//        
-//        let relativeScale: CGFloat = dynamicScale / dynamicHomeScale
-//                
-//        var offset: CGPoint = .zero
-//        let relativeContentSize: CGSize = contentSize.place(in: containerSize, placement: .fit, roundToPixels: false)
-//        offset += relativeContentSize / 2
-//        offset -= contentCropFrame.origin * relativeScale
-////        let relativeContentPaddingSize: CGSize = contentPaddingSize.place(in: contentSize, placement: .fit, roundToPixels: false)
-////        offset += ((relativeContentPaddingSize - contentPaddingSize * relativeScale) / 2)
-////        offset += containerPaddingCenter.asSize - containerSize / 2
-//        
-////        offset -= (contentCropFrame.center - contentPaddingSize.asPoint / 2) * relativeScale
-//        
-//        print("container aspect ratio with padding:", containerPaddingSize.aspectRatio,"\n",
-//              "content crop aspect ratio:", contentCropFrame.size.aspectRatio,"\n",
-//              "isWide:", isWide, "\n",
-//              "container aspect ratio:", containerSize.aspectRatio, "\n",
-//              "content aspect ratio:", contentSize.aspectRatio, "\n",
-//              "container size:", containerSize, "\n",
-//              "content size:", contentSize, "\n",
-//              "container size with padding:", containerPaddingSize, "\n",
-//              "content crop size:", contentCropFrame.size, "\n",
-//              "edge insets:", edgeInsets as Any, "\n",
-//              "relative scale:", relativeScale, "\n",
-//              "dynamic scale:", dynamicScale, "\n",
-//              "dynamic home scale:", dynamicHomeScale)
-//        
-//        return CCanvasCoordinate(
-//            offset: offset,
-//            scale: dynamicScale,
-//            angle: .zero
-//        )
-//    }
 }
 
 // MARK: - Frame
@@ -237,17 +206,17 @@ extension PixelCanvas {
     
     func reFrame() {
         guard let content: Content else { return }
-        canvasContentFrame = Self.frame(
+        contentFrame = Self.frame(
             contentResolution: content.resolution,
-            containerSize: canvasContainerSize,
-            coordinate: canvasCoordinate
+            containerSize: containerSize,
+            coordinate: coordinate
         )
     }
     
     static func frame(
         contentResolution: CGSize,
         containerSize: CGSize,
-        coordinate: CCanvasCoordinate
+        coordinate: GestureCanvasCoordinate
     ) -> CGRect {
         let containerAspectRatio: CGFloat = containerSize.aspectRatio
         let contentSize: CGSize = contentResolution.place(in: containerSize, placement: .fit, roundToPixels: false)
@@ -279,7 +248,7 @@ extension PixelCanvas {
     static func transform(
         contentResolution: CGSize,
         containerSize: CGSize,
-        coordinate: CCanvasCoordinate
+        coordinate: GestureCanvasCoordinate
     ) -> Transform {
         let containerResolution: CGSize = containerSize * .pixelsPerPoint
         var offset = coordinate.offset
@@ -301,21 +270,21 @@ extension PixelCanvas {
 // MARK: - Load
 
 extension PixelCanvas {
- 
-    #if os(macOS)
+    
+#if os(macOS)
     @MainActor
     public func load(image: NSImage) {
         load(image: Image(nsImage: image),
              resolution: image.size * image.scale)
     }
-    #else
+#else
     @MainActor
     public func load(image: UIImage) {
         load(image: Image(uiImage: image),
              resolution: image.size * image.scale)
     }
-    #endif
-
+#endif
+    
     @MainActor
     public func load(image: Image, resolution: CGSize) {
         self.content = Content(id: UUID(), image: image, resolution: resolution)
@@ -334,7 +303,7 @@ extension PixelCanvas {
     
     @MainActor
     private func zoom(
-        to coordinate: CCanvasCoordinate,
+        to coordinate: GestureCanvasCoordinate,
         animated: Bool = true
     ) {
         let zoom = Zoom(
@@ -350,10 +319,9 @@ extension PixelCanvas {
         scale: CGFloat,
         animated: Bool = true
     ) {
-        let coordinate = CCanvasCoordinate(
+        let coordinate = GestureCanvasCoordinate(
             offset: offset,
-            scale: scale,
-            angle: .zero
+            scale: scale
         )
         zoom(
             to: coordinate,
@@ -401,53 +369,93 @@ extension PixelCanvas {
     }
 }
 
-// MARK: Canvas Delegate
+// MARK: Gesture Canvas Delegate
 
-extension PixelCanvas: CCanvasDelegate {
+extension PixelCanvas: GestureCanvasDelegate {
     
-    public func canvasDragHitTest(at position: CGPoint, coordinate: CCanvasCoordinate) -> CCanvasDrag? { nil }
+    public func gestureCanvasChanged(_ canvas: GestureCanvas, coordinate: GestureCanvasCoordinate) {}
     
-    public func canvasDragGetPosition(_ drag: CCanvasDrag, coordinate: CCanvasCoordinate) -> CGPoint? { nil }
-    
-    public func canvasDragSetPosition(_ drag: CCanvasDrag, to position: CGPoint, coordinate: CCanvasCoordinate) {}
-    
-    public func canvasDragStarted(_ drag: CCanvasDrag, at position: CGPoint, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
-    
-    public func canvasDragReleased(_ drag: CCanvasDrag, at position: CGPoint, ignoreTap: Bool, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
-    
-    public func canvasDragWillEnd(_ drag: CCanvasDrag, at position: CGPoint, coordinate: CCanvasCoordinate) {}
-    
-    public func canvasDragDidEnd(_ drag: CCanvasDrag, at position: CGPoint, coordinate: CCanvasCoordinate) {}
-    
-    public func canvasMoveStarted(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
-        isMoving = true
+    public func gestureCanvasBackgroundTap(_ canvas: GestureCanvas, at location: CGPoint) {
+        delegate?.pixelCanvasDidTap(at: location, with: coordinate)
     }
-    
-    public func canvasMoveUpdated(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
-    
-    public func canvasMoveEnded(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
-        isMoving = false
-    }
+    public func gestureCanvasBackgroundDoubleTap(_ canvas: GestureCanvas, at location: CGPoint) {}
     
 #if os(macOS)
+    public func gestureCanvasDragSelectionStarted(_ canvas: GestureCanvas, at location: CGPoint) {}
+    public func gestureCanvasDragSelectionUpdated(_ canvas: GestureCanvas, at location: CGPoint) {}
+    public func gestureCanvasDragSelectionEnded(_ canvas: GestureCanvas, at location: CGPoint) {}
 
-    public func canvasSelectionStarted(at position: CGPoint, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
-    
-    public func canvasSelectionChanged(to position: CGPoint, coordinate: CCanvasCoordinate) {}
-    
-    public func canvasSelectionEnded(at position: CGPoint, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
-    
-    public func canvasCustomMouseButtonPress(at position: CGPoint, with customMouseButton: CCustomMouseButton, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
-    
-    public func canvasClick(count: Int, at position: CGPoint, with mouseButton: CCanvasInteractionInfo.MouseButton, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
-        delegate?.pixelCanvasDidTap(at: position, with: coordinate)
-    }
-    
+    public func gestureCanvasScrollStarted(_ canvas: GestureCanvas) {}
+    public func gestureCanvasScrollEnded(_ canvas: GestureCanvas) {}
+
+    @MainActor
+    public func gestureCanvasContextMenu(_ canvas: GestureCanvas, at location: CGPoint) -> NSMenu? { nil }
 #else
-    
-    public func canvasTap(count: Int, at position: CGPoint, coordinate: CCanvasCoordinate) {
-        delegate?.pixelCanvasDidTap(at: position, with: coordinate)
-    }
-    
+    public func gestureCanvasContext(at location: CGPoint) -> CGPoint? { nil }
+    public func gestureCanvasEditMenuInteractionDelegate() -> UIEditMenuInteractionDelegate? { nil }
+
+    public func gestureCanvasAllowPinch(_ canvas: GestureCanvas) -> Bool { true }
 #endif
+    
+    public func gestureCanvasDidStartPan(_ canvas: GestureCanvas) {
+        isPanning = true
+    }
+    public func gestureCanvasDidEndPan(_ canvas: GestureCanvas) {
+        isPanning = false
+    }
+    public func gestureCanvasDidStartZoom(_ canvas: GestureCanvas) {
+        isZooming = true
+    }
+    public func gestureCanvasDidEndZoom(_ canvas: GestureCanvas) {
+        isZooming = false
+    }
 }
+
+//extension PixelCanvas: CCanvasDelegate {
+//    
+//    public func canvasDragHitTest(at position: CGPoint, coordinate: CCanvasCoordinate) -> CCanvasDrag? { nil }
+//    
+//    public func canvasDragGetPosition(_ drag: CCanvasDrag, coordinate: CCanvasCoordinate) -> CGPoint? { nil }
+//    
+//    public func canvasDragSetPosition(_ drag: CCanvasDrag, to position: CGPoint, coordinate: CCanvasCoordinate) {}
+//    
+//    public func canvasDragStarted(_ drag: CCanvasDrag, at position: CGPoint, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
+//
+//    public func canvasDragReleased(_ drag: CCanvasDrag, at position: CGPoint, ignoreTap: Bool, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
+//    
+//    public func canvasDragWillEnd(_ drag: CCanvasDrag, at position: CGPoint, coordinate: CCanvasCoordinate) {}
+//    
+//    public func canvasDragDidEnd(_ drag: CCanvasDrag, at position: CGPoint, coordinate: CCanvasCoordinate) {}
+//    
+//    public func canvasMoveStarted(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
+//        isMoving = true
+//    }
+//    
+//    public func canvasMoveUpdated(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
+//    
+//    public func canvasMoveEnded(at position: CGPoint, viaScroll: Bool, info: CCanvasInteractionInfo?, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
+//        isMoving = false
+//    }
+//    
+//#if os(macOS)
+//
+//    public func canvasSelectionStarted(at position: CGPoint, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
+//    
+//    public func canvasSelectionChanged(to position: CGPoint, coordinate: CCanvasCoordinate) {}
+//    
+//    public func canvasSelectionEnded(at position: CGPoint, info: CCanvasInteractionInfo, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
+//    
+//    public func canvasCustomMouseButtonPress(at position: CGPoint, with customMouseButton: CCustomMouseButton, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {}
+//    
+//    public func canvasClick(count: Int, at position: CGPoint, with mouseButton: CCanvasInteractionInfo.MouseButton, keyboardFlags: Set<CCanvasKeyboardFlag>, coordinate: CCanvasCoordinate) {
+//        delegate?.pixelCanvasDidTap(at: position, with: coordinate)
+//    }
+//    
+//#else
+//    
+//    public func canvasTap(count: Int, at position: CGPoint, coordinate: CCanvasCoordinate) {
+//        delegate?.pixelCanvasDidTap(at: position, with: coordinate)
+//    }
+//    
+//#endif
+//}

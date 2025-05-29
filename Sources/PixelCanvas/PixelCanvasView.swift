@@ -1,12 +1,13 @@
 import SwiftUI
-import Canvas
+import GestureCanvas
 import CoreGraphicsExtensions
+import DisplayLink
 
 public struct PixelCanvasView<Foreground: View, Background: View>: View {
     
-    @ObservedObject private var pixelCanvas: PixelCanvas
-    @StateObject private var canvas = CCanvas(physics: false)
-    
+    @Bindable private var pixelCanvas: PixelCanvas
+    @State private var gestureCanvas = GestureCanvas()
+        
     private let background: (_ pixels: AnyView, _ frame: CGRect) -> Background
     private let foreground: () -> Foreground
     
@@ -26,38 +27,38 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
         
         ZStack {
             
-            background(AnyView(pixelBody), pixelCanvas.canvasContentFrame)
+            background(AnyView(pixelBody), pixelCanvas.contentFrame)
             
-            CCanvasView(canvas: canvas)
-            
-            PixelCanvasLayout(frame: pixelCanvas.canvasContentFrame) {
-                foreground()
+            GestureCanvasView(canvas: gestureCanvas) { $0 } content: {
+                PixelCanvasLayout(frame: pixelCanvas.contentFrame) {
+                    foreground()
+                }
             }
         }
         .readGeometry(size: $size)
-        .onChange(of: canvas.coordinate) { newCoordinate in
-            pixelCanvas.canvasCoordinate = newCoordinate
+        .onChange(of: gestureCanvas.coordinate) { _, newCoordinate in
+            pixelCanvas.coordinate = newCoordinate
             pixelCanvas.reFrame()
         }
-        .onChange(of: size) { newSize in
-            canvas.size = newSize
-            pixelCanvas.canvasContainerSize = newSize
+        .onChange(of: size) { _, newSize in
+            pixelCanvas.containerSize = newSize
             pixelCanvas.reFrame()
         }
         .onAppear {
-            canvas.delegate = pixelCanvas
-            guard let resolution = pixelCanvas.content?.resolution else { return }
-            canvas.contentAspectRatio = resolution.aspectRatio
+            // pixelCanvas.options.animationDuration ...
+            gestureCanvas.minimumScale = 0.1
+            gestureCanvas.maximumScale = nil
+            gestureCanvas.delegate = pixelCanvas
         }
-        .onChange(of: pixelCanvas.content?.resolution) { newResolution in
-            guard let newResolution else { return }
-            canvas.contentAspectRatio = newResolution.aspectRatio
+        .onChange(of: pixelCanvas.content?.resolution) { _, resolution in
+            if let resolution: CGSize {
+                gestureCanvas.maximumScale = max(resolution.width, resolution.height) / 2
+            } else {
+                gestureCanvas.maximumScale = nil
+            }
         }
         .onReceive(pixelCanvas.canvasZoom) { zoom in
-            canvas.move(
-                to: zoom.coordinate,
-                animatedDuration: zoom.animated ? pixelCanvas.options.animationDuration : nil
-            )
+            gestureCanvas.move(to: zoom.coordinate, animated: zoom.animated)
         }
     }
     
@@ -71,13 +72,13 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
                     transform: PixelCanvas.transform(
                         contentResolution: content.resolution,
                         containerSize: size,
-                        coordinate: canvas.coordinate
+                        coordinate: gestureCanvas.coordinate
                     ),
                     options: pixelCanvas.options
                 )
                 .id(content.id)
             } else {
-                PixelCanvasLayout(frame: pixelCanvas.canvasContentFrame) {
+                PixelCanvasLayout(frame: pixelCanvas.contentFrame) {
                     content.image
                         .resizable()
                         .aspectRatio(contentMode: .fit)
