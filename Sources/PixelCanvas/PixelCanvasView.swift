@@ -46,11 +46,9 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
             pixelCanvas.containerSize = newSize
             pixelCanvas.reFrame()
         }
-#if !os(macOS)
-        .onReceive(pixelCanvas.pinchCoordinateOffsetUpdate) { offset in
-            gestureCanvas.pinchCoordinateOffset = offset
+        .onReceive(pixelCanvas.zoomCoordinateOffsetUpdate) { offset in
+            gestureCanvas.zoomCoordinateOffset = offset
         }
-#endif
         .onChange(of: pixelCanvas.content?.resolution) { _, resolution in
             if let resolution: CGSize {
                 gestureCanvas.maximumScale = max(resolution.width, resolution.height) / 2

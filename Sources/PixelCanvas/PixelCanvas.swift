@@ -49,15 +49,11 @@ public final class PixelCanvas {
     }
     var content: Content? {
         didSet {      
-#if !os(macOS)
-            pinchCoordinateOffsetUpdate.send(pinchCoordinateOffset())
-#endif
+            zoomCoordinateOffsetUpdate.send(zoomCoordinateOffset())
         }
     }
     
-#if !os(macOS)
-    internal let pinchCoordinateOffsetUpdate = PassthroughSubject<CGPoint, Never>()
-#endif
+    internal let zoomCoordinateOffsetUpdate = PassthroughSubject<CGPoint, Never>()
     
     /// Moving (Panning or Zooming)
     public var isMoving: Bool {
@@ -90,9 +86,7 @@ public final class PixelCanvas {
     public internal(set) var containerSize: CGSize = .one {
         didSet {
             containerSizeContinuation?.yield(containerSize)
-#if !os(macOS)
-            pinchCoordinateOffsetUpdate.send(pinchCoordinateOffset())
-#endif
+            zoomCoordinateOffsetUpdate.send(zoomCoordinateOffset())
         }
     }
     @ObservationIgnored
@@ -232,7 +226,7 @@ extension PixelCanvas {
         )
     }
     
-    func pinchCoordinateOffset() -> CGPoint {
+    func zoomCoordinateOffset() -> CGPoint {
         guard let content: Content else { return .zero }
         return -Self.contentOrigin(contentResolution: content.resolution, containerSize: containerSize)
     }
