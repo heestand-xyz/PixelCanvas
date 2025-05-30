@@ -39,6 +39,7 @@ public final class PixelCanvas {
         public var borderOpacity: CGFloat = 0.25
         public var placement: Placement = .fit
         public var alwaysUseImageCanvas: Bool = false
+        public var interpolate: Bool = false
     }
     public var options = Options()
     

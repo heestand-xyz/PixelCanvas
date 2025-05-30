@@ -12,6 +12,7 @@ struct PixelCanvasZoomView: View {
         let function = ShaderFunction(library: .bundle(.module), name: "zoom")
         return Shader(function: function, arguments: [
             .image(image),
+            .float(options.interpolate ? 1.0 : 0.0),
             .float(CGFloat(options.placement.rawValue)),
             .float2(transform.containerResolution),
             .float2(transform.contentResolution),

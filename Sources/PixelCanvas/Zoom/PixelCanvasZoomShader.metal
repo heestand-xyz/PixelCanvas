@@ -50,6 +50,26 @@ float2 place(int place,
     return float2(u, v);
 }
 
+float2 uv(float2 position, float scale, float2 offset, float pixelsPerPoint, float2 containerResolution, float2 contentResolution, float2 textureResolution, int placement) {
+    
+    // Coordinate
+    float2 uv = (position * pixelsPerPoint) / containerResolution;
+    
+    // Resolution
+    uint inputWidth = contentResolution.x;
+    uint inputHeight = contentResolution.y;
+    uint outputWidth = containerResolution.x;
+    uint outputHeight = containerResolution.y;
+    
+    // Placement
+    float2 uvPlacement = place(placement, uv, outputWidth, outputHeight, inputWidth, inputHeight);
+    float2 uvScale = float2(scale, scale);
+    uvPlacement = (uvPlacement - 0.5) / uvScale + 0.5;
+    uvPlacement -= offset / float2(outputWidth, outputHeight);
+    
+    return uvPlacement;
+}
+
 float checker(float2 uv, float checkerSize, uint2 resolution) {
     int x = int(uv.x * float(resolution.x));
     x -= resolution.x / 2;
@@ -68,6 +88,7 @@ float checker(float2 uv, float checkerSize, uint2 resolution) {
 [[ stitchable ]] half4 zoom(float2 position,
                             SwiftUI::Layer layer,
                             texture2d<half, access::sample> texture,
+                            float interpolate,
                             float placement,
                             float2 containerResolution,
                             float2 contentResolution,
@@ -81,27 +102,28 @@ float checker(float2 uv, float checkerSize, uint2 resolution) {
                             float2 scaleRange,
                             float pixelsPerPoint) {
     
-    // Coordinate
-    float2 uv = (position * pixelsPerPoint) / containerResolution;
+    float2 textureResolution = float2(texture.get_width(), texture.get_height());
     
-    // Resolution
-    float2 textureResolution = float2(texture.get_width(), texture.get_height()); // contentResolution;
-    uint inputWidth = contentResolution.x;
-    uint inputHeight = contentResolution.y;
-    uint outputWidth = containerResolution.x;
-    uint outputHeight = containerResolution.y;
-    
-    // Placement
-    float2 uvPlacement = place(int(placement), uv, outputWidth, outputHeight, inputWidth, inputHeight);
-    float2 uvScale = float2(scale, scale);
-    uvPlacement = (uvPlacement - 0.5) / uvScale + 0.5;
-    uvPlacement -= offset / float2(outputWidth, outputHeight);
-    uint2 location = uint2(uvPlacement * textureResolution);
-    
-    // Texture
-    half4 color = texture.read(location);
+    float2 uvPlacement = uv(position, scale, offset, pixelsPerPoint, containerResolution, contentResolution, textureResolution, int(placement));
     if (uvPlacement.x < 0.0 || uvPlacement.x > 1.0 || uvPlacement.y < 0.0 || uvPlacement.y > 1.0) {
         return 0.0;
+    }
+    int2 location = int2(uvPlacement * textureResolution);
+    
+    half4 color;
+    if (interpolate > 0.0) {
+        half4 color1 = texture.read(uint2(location + int2(1, 1)));
+        half4 color2 = texture.read(uint2(location + int2(1, 0)));
+        half4 color3 = texture.read(uint2(location + int2(1, -1)));
+        half4 color4 = texture.read(uint2(location + int2(0, 1)));
+        half4 color5 = texture.read(uint2(location + int2(0, 0)));
+        half4 color6 = texture.read(uint2(location + int2(0, -1)));
+        half4 color7 = texture.read(uint2(location + int2(-1, 1)));
+        half4 color8 = texture.read(uint2(location + int2(-1, 0)));
+        half4 color9 = texture.read(uint2(location + int2(-1, -1)));
+        color = (color1 + color2 + color3  + color4 + color5 + color6 + color7 + color8  + color9) / 9;
+    } else {
+        color = texture.read(uint2(location));
     }
     
     // Checker
@@ -111,7 +133,7 @@ float checker(float2 uv, float checkerSize, uint2 resolution) {
         if ((uvPlacement.x > 0.0 && uvPlacement.x < 1.0) && (uvPlacement.y > 0.0 && uvPlacement.y < 1.0)) {
             inBounds = true;
             if (scale < 1.0) {
-                checkerLight = checker(uvPlacement, checkerSize, uint2(inputWidth, inputHeight)) * checkerOpacity;
+                checkerLight = checker(uvPlacement, checkerSize, uint2(contentResolution.x, contentResolution.y)) * checkerOpacity;
             } else {
                 float logScale = log2(scale);
                 float logFraction = logScale - floor(logScale);
@@ -119,8 +141,8 @@ float checker(float2 uv, float checkerSize, uint2 resolution) {
                 float nextScalePower = pow(2.0, floor(logScale) + 1.0);
                 float currentSize = max(1.0, checkerSize / currentScalePower);
                 float nextSize = max(1.0, checkerSize / nextScalePower);
-                float currentChecker = checker(uvPlacement, currentSize, uint2(inputWidth, inputHeight)) * checkerOpacity;
-                float nextChecker = checker(uvPlacement, nextSize, uint2(inputWidth, inputHeight)) * checkerOpacity;
+                float currentChecker = checker(uvPlacement, currentSize, uint2(contentResolution.x, contentResolution.y)) * checkerOpacity;
+                float nextChecker = checker(uvPlacement, nextSize, uint2(contentResolution.x, contentResolution.y)) * checkerOpacity;
                 float fadeFraction = max(0.0, logFraction * 10.0 - 9.0);
                 checkerLight = currentChecker * (1.0 - fadeFraction) + nextChecker * fadeFraction;
             }
@@ -135,8 +157,8 @@ float checker(float2 uv, float checkerSize, uint2 resolution) {
         float zoomFade = min(max(fraction, 0.0), 1.0);
         float2 uvBorder = float2(borderWidth / scale,
                                  borderWidth / scale);
-        float2 uvResolution = float2(uvPlacement.x * float(inputWidth),
-                                     uvPlacement.y * float(inputHeight));
+        float2 uvResolution = float2(uvPlacement.x * float(contentResolution.x),
+                                     uvPlacement.y * float(contentResolution.y));
         float2 uvPixel = float2(uvResolution.x - float(int(uvResolution.x)),
                                 uvResolution.y - float(int(uvResolution.y)));
         if (!(uvPixel.x > uvBorder.x && uvPixel.x < 1.0 - uvBorder.x) || !(uvPixel.y > uvBorder.y && uvPixel.y < 1.0 - uvBorder.y)) {
