@@ -38,7 +38,11 @@ public final class PixelCanvas {
         public var borderFadeRange: ClosedRange<CGFloat> = 25...50
         public var borderOpacity: CGFloat = 0.25
         public var placement: Placement = .fit
+        /// Won't use shader.
         public var alwaysUseImageCanvas: Bool = false
+        /// Experimental.
+        ///
+        /// 3x3 interpolation when zoomed out.
         public var interpolate: Bool = false
     }
     public var options = Options()

@@ -34,6 +34,7 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
         }
         .readGeometry(size: $size)
         .onAppear {
+            gestureCanvas.animationDuration = pixelCanvas.options.animationDuration
             gestureCanvas.minimumScale = 0.1
             gestureCanvas.maximumScale = nil
             gestureCanvas.delegate = pixelCanvas

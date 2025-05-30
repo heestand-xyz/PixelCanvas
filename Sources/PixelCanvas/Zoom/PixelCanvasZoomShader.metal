@@ -110,8 +110,12 @@ float checker(float2 uv, float checkerSize, uint2 resolution) {
     }
     int2 location = int2(uvPlacement * textureResolution);
     
+    float contentScale = max(contentResolution.x, contentResolution.y) / min(containerResolution.x, containerResolution.y);
+    float thresholdScale = 2.0;
+    bool zoomedIn = scale > (contentScale / thresholdScale);
+    
     half4 color;
-    if (interpolate > 0.0) {
+    if (interpolate > 0.0 && !zoomedIn) {
         half4 color1 = texture.read(uint2(location + int2(1, 1)));
         half4 color2 = texture.read(uint2(location + int2(1, 0)));
         half4 color3 = texture.read(uint2(location + int2(1, -1)));
