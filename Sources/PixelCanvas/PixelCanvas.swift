@@ -59,22 +59,34 @@ public final class PixelCanvas {
     internal let pinchCoordinateOffsetUpdate = PassthroughSubject<CGPoint, Never>()
 #endif
     
-    public private(set) var isPanning: Bool = false {
-        didSet { isMovingContinuation?.yield(isMoving) }
-    }
-    public private(set) var isZooming: Bool = false {
-        didSet { isMovingContinuation?.yield(isMoving) }
-    }
+    /// Moving (Panning or Zooming)
     public var isMoving: Bool {
         isPanning || isZooming
     }
-    @ObservationIgnored
-    public private(set) lazy var isMovingStream = AsyncStream<Bool> { [weak self] continuation in
-        self?.isMovingContinuation = continuation
+    
+    /// Panning
+    public private(set) var isPanning: Bool = false {
+        didSet { isPanningContinuation?.yield(isPanning) }
     }
     @ObservationIgnored
-    private var isMovingContinuation: AsyncStream<Bool>.Continuation?
+    public private(set) lazy var isPanningStream = AsyncStream<Bool> { [weak self] continuation in
+        self?.isPanningContinuation = continuation
+    }
+    @ObservationIgnored
+    private var isPanningContinuation: AsyncStream<Bool>.Continuation?
     
+    /// Zooming
+    public private(set) var isZooming: Bool = false {
+        didSet { isZoomingContinuation?.yield(isZooming) }
+    }
+    @ObservationIgnored
+    public private(set) lazy var isZoomingStream = AsyncStream<Bool> { [weak self] continuation in
+        self?.isZoomingContinuation = continuation
+    }
+    @ObservationIgnored
+    private var isZoomingContinuation: AsyncStream<Bool>.Continuation?
+    
+    /// Container Size
     public internal(set) var containerSize: CGSize = .one {
         didSet {
             containerSizeContinuation?.yield(containerSize)
@@ -90,6 +102,7 @@ public final class PixelCanvas {
     @ObservationIgnored
     private var containerSizeContinuation: AsyncStream<CGSize>.Continuation?
     
+    /// Coordinate
     public internal(set) var coordinate: GestureCanvasCoordinate = .zero {
         didSet {
             coordinateContinuation?.yield(coordinate)
@@ -102,7 +115,7 @@ public final class PixelCanvas {
     @ObservationIgnored
     private var coordinateContinuation: AsyncStream<GestureCanvasCoordinate>.Continuation?
     
-    /// Canvas Scale
+    /// Scale
     public var scale: CGFloat {
         get {
             coordinate.scale
@@ -112,7 +125,7 @@ public final class PixelCanvas {
             reFrame()
         }
     }
-    /// Canvas Offset
+    /// Offset
     public var offset: CGPoint {
         get {
             coordinate.offset
@@ -123,6 +136,7 @@ public final class PixelCanvas {
         }
     }
     
+    /// Content Frame
     public internal(set) var contentFrame: CGRect = .one {
         didSet {
             contentFrameContinuation?.yield(contentFrame)
@@ -135,7 +149,7 @@ public final class PixelCanvas {
     @ObservationIgnored
     private var contentFrameContinuation: AsyncStream<CGRect>.Continuation?
     
-    /// Content Frame
+    /// Frame
     public var frame: CGRect {
         get {
             contentFrame
