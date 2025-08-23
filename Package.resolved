@@ -1,21 +1,12 @@
 {
   "pins" : [
     {
-      "identity" : "canvas",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/heestand-xyz/Canvas",
-      "state" : {
-        "revision" : "d39be35a1d77b1e9e7ba8724b5593f35e93643c2",
-        "version" : "2.5.0"
-      }
-    },
-    {
       "identity" : "coregraphicsextensions",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/heestand-xyz/CoreGraphicsExtensions",
       "state" : {
-        "revision" : "a95735b2522f6e2ba9ab8a59fbf742e1723212ed",
-        "version" : "2.0.0"
+        "revision" : "a64b26e06b6f95fd0bc04cdd97d1466d6167634a",
+        "version" : "2.0.1"
       }
     },
     {
@@ -23,35 +14,26 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/heestand-xyz/DisplayLink",
       "state" : {
-        "revision" : "e76ded3edb36b8b4ccfbe0c4a83c113c3fa9bef5",
-        "version" : "2.0.1"
+        "revision" : "4da2c8002426e07a2e1ada87355fc3f17d0be175",
+        "version" : "2.1.0"
       }
     },
     {
-      "identity" : "logger",
+      "identity" : "gesturecanvas",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/heestand-xyz/Logger",
+      "location" : "https://github.com/heestand-xyz/GestureCanvas",
       "state" : {
-        "revision" : "8553f58e72b83598acc28d4ea93b1dc992c71067",
-        "version" : "0.3.1"
+        "revision" : "d38047008e738e4b02e5086030242aa2317c2a22",
+        "version" : "1.5.1"
       }
     },
     {
-      "identity" : "multiviews",
+      "identity" : "texturemap",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/heestand-xyz/MultiViews",
+      "location" : "https://github.com/heestand-xyz/TextureMap",
       "state" : {
-        "revision" : "cfb3c945f89adebc13fa3c85f8cfa37f41946683",
-        "version" : "3.0.0"
-      }
-    },
-    {
-      "identity" : "swift-collections",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-collections",
-      "state" : {
-        "revision" : "d029d9d39c87bed85b1c50adee7c41795261a192",
-        "version" : "1.0.6"
+        "revision" : "fd4d8f4bbebd7451634c1f5257d3298f5faffd57",
+        "version" : "2.2.1"
       }
     }
   ],
