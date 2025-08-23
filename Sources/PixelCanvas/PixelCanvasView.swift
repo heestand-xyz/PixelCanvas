@@ -58,7 +58,13 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
             }
         }
         .onReceive(pixelCanvas.canvasZoom) { zoom in
-            gestureCanvas.move(to: zoom.coordinate, animated: zoom.animated)
+            if zoom.animated {
+                gestureCanvas.move(to: zoom.coordinate)
+            } else {
+                Task {
+                    await gestureCanvas.animate(to: zoom.coordinate)
+                }
+            }
         }
     }
     

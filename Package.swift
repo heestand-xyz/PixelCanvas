@@ -15,9 +15,9 @@ let package = Package(
             targets: ["PixelCanvas"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/heestand-xyz/GestureCanvas", from: "1.5.1"),
+        .package(url: "https://github.com/heestand-xyz/GestureCanvas", from: "1.5.3"),
         .package(url: "https://github.com/heestand-xyz/CoreGraphicsExtensions", from: "2.0.1"),
-        .package(url: "https://github.com/heestand-xyz/TextureMap", from: "2.2.0"),
+        .package(url: "https://github.com/heestand-xyz/TextureMap", from: "2.2.1"),
     ],
     targets: [
         .target(

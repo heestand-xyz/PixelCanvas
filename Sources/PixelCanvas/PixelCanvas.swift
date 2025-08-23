@@ -425,6 +425,7 @@ extension PixelCanvas: GestureCanvasDelegate {
     public func gestureCanvasBackgroundDoubleTap(_ canvas: GestureCanvas, at location: CGPoint) {}
     
 #if os(macOS)
+    public func gestureCanvasTrackpadLightMultiTap(_ canvas: GestureCanvas, tapCount: Int, at location: CGPoint) {}
     public func gestureCanvasDragSelectionStarted(_ canvas: GestureCanvas, at location: CGPoint) {}
     public func gestureCanvasDragSelectionUpdated(_ canvas: GestureCanvas, at location: CGPoint) {}
     public func gestureCanvasDragSelectionEnded(_ canvas: GestureCanvas, at location: CGPoint) {}

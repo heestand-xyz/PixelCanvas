@@ -2,10 +2,6 @@
 
 Pan and zoom images down to pixel level.
 
-For iOS (v16), macOS (v13) and visionOS (v1).
-
-Note that pixel level detail with a SwiftUI shader is only available for iOS (v17), macOS (v14) and visionOS (v1).
-
 ```swift
 import SwiftUI
 import PixelCanvas

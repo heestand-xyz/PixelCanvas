@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/heestand-xyz/DisplayLink",
       "state" : {
-        "revision" : "4da2c8002426e07a2e1ada87355fc3f17d0be175",
-        "version" : "2.1.0"
+        "revision" : "7765701250010ca99825eff645d24556247aaf22",
+        "version" : "2.1.1"
       }
     },
     {
@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/heestand-xyz/GestureCanvas",
       "state" : {
-        "revision" : "d38047008e738e4b02e5086030242aa2317c2a22",
-        "version" : "1.5.1"
+        "revision" : "59caa33eb500515dff51531eba4ff136526167c5",
+        "version" : "1.5.3"
       }
     },
     {
