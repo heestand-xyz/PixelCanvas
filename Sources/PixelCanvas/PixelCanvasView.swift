@@ -40,7 +40,7 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
             gestureCanvas.delegate = pixelCanvas
         }
         .onChange(of: gestureCanvas.coordinate) { _, newCoordinate in
-            pixelCanvas.coordinate = newCoordinate
+            pixelCanvas.coordinate = newCoordinate.unlimited
             pixelCanvas.reFrame()
         }
         .onChange(of: size) { _, newSize in
@@ -77,7 +77,7 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
                     transform: PixelCanvas.transform(
                         contentResolution: content.resolution,
                         containerSize: size,
-                        coordinate: gestureCanvas.coordinate
+                        coordinate: gestureCanvas.coordinate.unlimited
                     ),
                     options: pixelCanvas.options
                 )

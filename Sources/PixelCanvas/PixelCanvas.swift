@@ -417,7 +417,7 @@ extension PixelCanvas {
 
 extension PixelCanvas: GestureCanvasDelegate {
     
-    public func gestureCanvasChanged(_ canvas: GestureCanvas, coordinate: GestureCanvasCoordinate) {}
+    public func gestureCanvasChanged(_ canvas: GestureCanvas, coordinate: GestureCanvasDynamicCoordinate) {}
     
     public func gestureCanvasBackgroundTap(_ canvas: GestureCanvas, at location: CGPoint) {
         delegate?.pixelCanvasDidTap(at: location, with: coordinate)
@@ -445,16 +445,33 @@ extension PixelCanvas: GestureCanvasDelegate {
     }
 #endif
     
-    public func gestureCanvasDidStartPan(_ canvas: GestureCanvas) {
+    public func gestureCanvasDidStartPan(_ canvas: GestureCanvas, at location: CGPoint) {
         isPanning = true
     }
-    public func gestureCanvasDidEndPan(_ canvas: GestureCanvas) {
+    
+    public func gestureCanvasDidUpdatePan(_ canvas: GestureCanvas, at location: CGPoint) {}
+    
+    public func gestureCanvasDidEndPan(_ canvas: GestureCanvas, at location: CGPoint) {
         isPanning = false
     }
-    public func gestureCanvasDidStartZoom(_ canvas: GestureCanvas) {
+    
+    public func gestureCanvasDidCancelPan(_ canvas: GestureCanvas) {
+        isPanning = false
+    }
+    
+    public func gestureCanvasDidStartZoom(_ canvas: GestureCanvas, at location: CGPoint) {
         isZooming = true
     }
-    public func gestureCanvasDidEndZoom(_ canvas: GestureCanvas) {
+    
+    public func gestureCanvasDidUpdateZoom(_ canvas: GestureCanvas, at location: CGPoint) {}
+    
+    public func gestureCanvasWillEndZoom(_ canvas: GestureCanvas, at location: CGPoint) {}
+    
+    public func gestureCanvasDidEndZoom(_ canvas: GestureCanvas, at location: CGPoint) {
+        isZooming = false
+    }
+    
+    public func gestureCanvasDidCancelZoom(_ canvas: GestureCanvas) {
         isZooming = false
     }
 }
