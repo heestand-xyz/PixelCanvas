@@ -419,6 +419,8 @@ extension PixelCanvas: GestureCanvasDelegate {
     
     public func gestureCanvasChanged(_ canvas: GestureCanvas, coordinate: GestureCanvasDynamicCoordinate) {}
     
+    public func gestureCanvasAllowInteraction(_ canvas: GestureCanvas, at location: CGPoint) -> Bool { true }
+    
     public func gestureCanvasBackgroundTap(_ canvas: GestureCanvas, at location: CGPoint) {
         delegate?.pixelCanvasDidTap(at: location, with: coordinate)
     }
