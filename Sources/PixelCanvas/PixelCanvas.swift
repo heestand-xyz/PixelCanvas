@@ -101,6 +101,9 @@ public final class PixelCanvas {
     @ObservationIgnored
     private var containerSizeContinuation: AsyncStream<CGSize>.Continuation?
     
+    /// External Safe Area
+    public var externalSafeAreaInsets: EdgeInsets = .zero
+    
     /// Coordinate
     public internal(set) var coordinate: GestureCanvasCoordinate = .zero {
         didSet {
@@ -233,7 +236,11 @@ extension PixelCanvas {
     
     func zoomCoordinateOffset() -> CGPoint {
         guard let content: Content else { return .zero }
-        return -Self.contentOrigin(contentResolution: content.resolution, containerSize: containerSize)
+        let externalOffset = CGPoint(
+            x: externalSafeAreaInsets.leading,
+            y: externalSafeAreaInsets.top
+        )
+        return externalOffset - Self.contentOrigin(contentResolution: content.resolution, containerSize: containerSize)
     }
 }
 
