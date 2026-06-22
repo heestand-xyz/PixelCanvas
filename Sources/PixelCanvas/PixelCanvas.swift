@@ -448,8 +448,8 @@ extension PixelCanvas: GestureCanvasDelegate {
     @MainActor
     public func gestureCanvasContextMenu(_ canvas: GestureCanvas, at location: CGPoint) -> NSMenu? { nil }
 #else
-    public func gestureCanvasContext(at location: CGPoint) -> Bool { false }
-    public func gestureCanvasEditMenuInteractionDelegate() -> UIEditMenuInteractionDelegate? { nil }
+    public func gestureCanvasContext(_ canvas: GestureCanvas, at location: CGPoint) -> Bool { false }
+    public func gestureCanvasEditMenuInteractionDelegate(_ canvas: GestureCanvas) -> UIEditMenuInteractionDelegate? { nil }
 
     public func gestureCanvasAllowPinch(_ canvas: GestureCanvas) -> Bool {
         delegate?.pixelCanvasAllowPinch(self) ?? true
