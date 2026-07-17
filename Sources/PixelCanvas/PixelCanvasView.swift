@@ -35,8 +35,10 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
         .readGeometry(size: $size)
         .onAppear {
             gestureCanvas.animationDuration = pixelCanvas.options.animationDuration
-            gestureCanvas.minimumScale = 0.1
+            gestureCanvas.minimumScale = 0.25
+            gestureCanvas.softMinimumScale = 0.5
             gestureCanvas.maximumScale = nil
+            gestureCanvas.softMaximumScale = nil
             gestureCanvas.delegate = pixelCanvas
         }
         .onChange(of: gestureCanvas.coordinate) { _, newCoordinate in
@@ -52,9 +54,12 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
         }
         .onChange(of: pixelCanvas.content?.resolution) { _, resolution in
             if let resolution: CGSize {
-                gestureCanvas.maximumScale = max(resolution.width, resolution.height) / 2
+                let maximumScale = min(resolution.width, resolution.height) / 2
+                gestureCanvas.maximumScale = maximumScale
+                gestureCanvas.softMaximumScale = maximumScale / 2
             } else {
                 gestureCanvas.maximumScale = nil
+                gestureCanvas.softMaximumScale = nil
             }
         }
         .onReceive(pixelCanvas.canvasZoom) { zoom in
