@@ -102,7 +102,11 @@ public final class PixelCanvas {
     private var containerSizeContinuation: AsyncStream<CGSize>.Continuation?
     
     /// External Safe Area
-    public var externalSafeAreaInsets: EdgeInsets = .zero
+    public var externalSafeAreaInsets: EdgeInsets = .zero {
+        didSet {
+            zoomCoordinateOffsetUpdate.send(zoomCoordinateOffset())
+        }
+    }
     
     /// Coordinate
     public internal(set) var coordinate: GestureCanvasCoordinate = .zero {
