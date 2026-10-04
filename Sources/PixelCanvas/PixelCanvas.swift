@@ -21,6 +21,8 @@ public protocol PixelCanvasDelegate: AnyObject {
 public final class PixelCanvas {
     
     public weak var delegate: PixelCanvasDelegate?
+    /// Handles foreground content before a drag is offered to canvas scrolling.
+    public weak var interactionDelegate: (any GestureCanvasInteractionDelegate)?
     
     public enum Placement: Int {
         case stretch

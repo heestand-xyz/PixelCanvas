@@ -40,7 +40,14 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
             gestureCanvas.maximumScale = nil
             gestureCanvas.softMaximumScale = nil
             gestureCanvas.delegate = pixelCanvas
+            gestureCanvas.interactionDelegate = pixelCanvas.interactionDelegate
             gestureCanvas.pansWithPrimaryDrag = true
+        }
+        .onChange(of: pixelCanvas.interactionDelegate.map { ObjectIdentifier($0) }) { _, _ in
+            gestureCanvas.interactionDelegate = pixelCanvas.interactionDelegate
+        }
+        .onDisappear {
+            gestureCanvas.cancelInteraction()
         }
         .onChange(of: gestureCanvas.coordinate) { _, newCoordinate in
             pixelCanvas.coordinate = pixelCanvas.options.usesBoundedScrolling ? newCoordinate.limited : newCoordinate.unlimited
