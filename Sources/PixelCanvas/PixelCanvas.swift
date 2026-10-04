@@ -30,6 +30,8 @@ public final class PixelCanvas {
     }
     
     public struct Options {
+        /// Bounds the camera to the image and uses native scrolling where available.
+        public var usesBoundedScrolling: Bool = false
         public var animationDuration: TimeInterval = 1.0 / 3.0
         public var checkerTransparency: Bool = true
         public var checkerOpacity: CGFloat = 0.5
@@ -427,6 +429,22 @@ extension PixelCanvas {
 // MARK: Gesture Canvas Delegate
 
 extension PixelCanvas: GestureCanvasDelegate {
+
+    public func gestureCanvasBounds(_ canvas: GestureCanvas) -> CGRect? {
+        guard options.usesBoundedScrolling, let content else { return nil }
+        let size = content.resolution.place(in: containerSize, placement: .fit, roundToPixels: false)
+        // PixelCanvas adds a fixed fitted origin after applying the camera.
+        // Include that origin in canvas coordinates so the displayed image,
+        // handles and scroll limits agree even for letterboxed images.
+        let origin = Self.contentOrigin(contentResolution: content.resolution, containerSize: containerSize)
+        return CGRect(origin: origin / max(coordinate.scale, 0.0001), size: size)
+    }
+
+#if !os(macOS)
+    public func gestureCanvasUsesNativeScrolling(_ canvas: GestureCanvas) -> Bool {
+        options.usesBoundedScrolling
+    }
+#endif
     
     public func gestureCanvasChanged(_ canvas: GestureCanvas, coordinate: GestureCanvasDynamicCoordinate) {}
     

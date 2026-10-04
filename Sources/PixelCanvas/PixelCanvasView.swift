@@ -40,9 +40,10 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
             gestureCanvas.maximumScale = nil
             gestureCanvas.softMaximumScale = nil
             gestureCanvas.delegate = pixelCanvas
+            gestureCanvas.pansWithPrimaryDrag = true
         }
         .onChange(of: gestureCanvas.coordinate) { _, newCoordinate in
-            pixelCanvas.coordinate = newCoordinate.unlimited
+            pixelCanvas.coordinate = pixelCanvas.options.usesBoundedScrolling ? newCoordinate.limited : newCoordinate.unlimited
             pixelCanvas.reFrame()
         }
         .onChange(of: size) { _, newSize in
@@ -82,7 +83,7 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
                     transform: PixelCanvas.transform(
                         contentResolution: content.resolution,
                         containerSize: size,
-                        coordinate: gestureCanvas.coordinate.unlimited
+                        coordinate: pixelCanvas.coordinate
                     ),
                     options: pixelCanvas.options
                 )
