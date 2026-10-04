@@ -48,6 +48,8 @@ public final class PixelCanvas {
         ///
         /// 3x3 interpolation when zoomed out.
         public var interpolate: Bool = false
+
+        public init() {}
     }
     public var options = Options()
     

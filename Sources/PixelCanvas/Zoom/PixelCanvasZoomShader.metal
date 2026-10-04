@@ -85,6 +85,34 @@ float checker(float2 uv, float checkerSize, uint2 resolution) {
     return light;
 }
 
+float dynamicChecker(float2 uv, float scale, float checkerSize, float checkerOpacity, uint2 resolution) {
+    if (scale < 1.0) {
+        return checker(uv, checkerSize, resolution) * checkerOpacity;
+    }
+    float logScale = log2(scale);
+    float logFraction = logScale - floor(logScale);
+    float currentScalePower = pow(2.0, floor(logScale));
+    float nextScalePower = pow(2.0, floor(logScale) + 1.0);
+    float currentSize = max(1.0, checkerSize / currentScalePower);
+    float nextSize = max(1.0, checkerSize / nextScalePower);
+    float currentChecker = checker(uv, currentSize, resolution) * checkerOpacity;
+    float nextChecker = checker(uv, nextSize, resolution) * checkerOpacity;
+    float fadeFraction = max(0.0, logFraction * 10.0 - 9.0);
+    return currentChecker * (1.0 - fadeFraction) + nextChecker * fadeFraction;
+}
+
+[[ stitchable ]] half4 canvasChecker(float2 position, half4 color,
+                                     float2 frameOrigin, float2 frameSize,
+                                     float2 contentResolution, float scale,
+                                     float checkerSize, float checkerOpacity) {
+    float2 uv = (position - frameOrigin) / frameSize;
+    if (uv.x <= 0.0 || uv.x >= 1.0 || uv.y <= 0.0 || uv.y >= 1.0) {
+        return 0.0;
+    }
+    float light = dynamicChecker(uv, scale, checkerSize, checkerOpacity, uint2(contentResolution));
+    return half4(half3(light), 0.5);
+}
+
 [[ stitchable ]] half4 zoom(float2 position,
                             SwiftUI::Layer layer,
                             texture2d<half, access::sample> texture,
@@ -136,20 +164,7 @@ float checker(float2 uv, float checkerSize, uint2 resolution) {
         float checkerLight = 0.0;
         if ((uvPlacement.x > 0.0 && uvPlacement.x < 1.0) && (uvPlacement.y > 0.0 && uvPlacement.y < 1.0)) {
             inBounds = true;
-            if (scale < 1.0) {
-                checkerLight = checker(uvPlacement, checkerSize, uint2(contentResolution.x, contentResolution.y)) * checkerOpacity;
-            } else {
-                float logScale = log2(scale);
-                float logFraction = logScale - floor(logScale);
-                float currentScalePower = pow(2.0, floor(logScale));
-                float nextScalePower = pow(2.0, floor(logScale) + 1.0);
-                float currentSize = max(1.0, checkerSize / currentScalePower);
-                float nextSize = max(1.0, checkerSize / nextScalePower);
-                float currentChecker = checker(uvPlacement, currentSize, uint2(contentResolution.x, contentResolution.y)) * checkerOpacity;
-                float nextChecker = checker(uvPlacement, nextSize, uint2(contentResolution.x, contentResolution.y)) * checkerOpacity;
-                float fadeFraction = max(0.0, logFraction * 10.0 - 9.0);
-                checkerLight = currentChecker * (1.0 - fadeFraction) + nextChecker * fadeFraction;
-            }
+            checkerLight = dynamicChecker(uvPlacement, scale, checkerSize, checkerOpacity, uint2(contentResolution));
         }
         color = half4(half3(checkerLight) * (1.0 - color.a) + color.rgb * color.a,
                        inBounds ? 0.5 + 0.5 * color.a : 0.0);
