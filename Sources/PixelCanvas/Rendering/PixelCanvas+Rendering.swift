@@ -4,7 +4,12 @@ import CoreGraphicsExtensions
 
 extension PixelCanvas {
     /// Adapts a frame in view points to the fitted coordinates used by the renderer.
-    static func transform(contentResolution: CGSize, containerSize: CGSize, frame: CGRect) -> Transform {
+    static func transform(
+        contentResolution: CGSize,
+        containerSize: CGSize,
+        frame: CGRect,
+        displayScale: CGFloat
+    ) -> Transform {
         let fittedSize = contentResolution.place(in: containerSize, placement: .fit, roundToPixels: false)
         let fittedOrigin = contentOrigin(contentResolution: contentResolution, containerSize: containerSize)
         return transform(
@@ -13,7 +18,8 @@ extension PixelCanvas {
             coordinate: GestureCanvasCoordinate(
                 offset: frame.origin - fittedOrigin,
                 scale: frame.height / fittedSize.height
-            )
+            ),
+            displayScale: displayScale
         )
     }
 }

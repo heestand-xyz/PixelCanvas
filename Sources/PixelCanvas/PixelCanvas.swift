@@ -48,6 +48,8 @@ public final class PixelCanvas {
         ///
         /// 3x3 interpolation when zoomed out.
         public var interpolate: Bool = false
+        /// Selects a cached Lanczos level when mipmaps are supplied while loading.
+        public var usesMipmaps: Bool = false
 
         public init() {}
     }
@@ -57,6 +59,7 @@ public final class PixelCanvas {
         let id: UUID
         let image: Image
         let resolution: CGSize
+        let mipmaps: PixelCanvasMipmaps?
     }
     var content: Content? {
         didSet {      
@@ -303,26 +306,29 @@ extension PixelCanvas {
         let contentResolution: CGSize
         let offset: CGPoint
         let scale: CGFloat
+        let displayScale: CGFloat
     }
     
     static func transform(
         contentResolution: CGSize,
         containerSize: CGSize,
-        coordinate: GestureCanvasCoordinate
+        coordinate: GestureCanvasCoordinate,
+        displayScale: CGFloat
     ) -> Transform {
-        let containerResolution: CGSize = containerSize * .pixelsPerPoint
+        let containerResolution: CGSize = containerSize * displayScale
         var offset = coordinate.offset
         offset /= coordinate.scale
         let relativeSize: CGSize = contentResolution.place(in: containerSize, placement: .fit, roundToPixels: false)
         var inspectOffset: CGPoint = ((offset + relativeSize / 2) * coordinate.scale - relativeSize / 2)
         inspectOffset /= relativeSize / containerSize
         inspectOffset /= coordinate.scale
-        inspectOffset *= .pixelsPerPoint
+        inspectOffset *= displayScale
         return Transform(
             containerResolution: containerResolution,
             contentResolution: contentResolution,
             offset: inspectOffset,
-            scale: coordinate.scale
+            scale: coordinate.scale,
+            displayScale: displayScale
         )
     }
 }
@@ -346,8 +352,11 @@ extension PixelCanvas {
 #endif
     
     @MainActor
-    public func load(image: Image, resolution: CGSize) {
-        self.content = Content(id: UUID(), image: image, resolution: resolution)
+    public func load(image: Image, resolution: CGSize, mipmaps: PixelCanvasMipmaps? = nil) {
+        self.content = Content(
+            id: UUID(), image: image, resolution: resolution,
+            mipmaps: mipmaps?.sourceResolution == resolution ? mipmaps : nil
+        )
         self.reFrame()
         
     }

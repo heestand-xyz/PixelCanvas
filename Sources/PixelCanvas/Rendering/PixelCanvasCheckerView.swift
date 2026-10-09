@@ -2,6 +2,7 @@ import SwiftUI
 
 /// The same zoom-dependent transparency checker used behind PixelCanvas images.
 public struct PixelCanvasCheckerView: View {
+    @Environment(\.displayScale) private var displayScale
     private let resolution: CGSize
     private let frame: CGRect
     private let options: PixelCanvas.Options
@@ -16,7 +17,12 @@ public struct PixelCanvasCheckerView: View {
         GeometryReader { geometry in
             if geometry.size.width > 0, geometry.size.height > 0,
                resolution.width > 0, resolution.height > 0, frame.width > 0, frame.height > 0 {
-                let transform = PixelCanvas.transform(contentResolution: resolution, containerSize: geometry.size, frame: frame)
+                let transform = PixelCanvas.transform(
+                    contentResolution: resolution,
+                    containerSize: geometry.size,
+                    frame: frame,
+                    displayScale: displayScale
+                )
                 Rectangle()
                     .colorEffect(Shader(
                         function: ShaderFunction(library: .bundle(.module), name: "canvasChecker"),

@@ -4,6 +4,7 @@ import CoreGraphicsExtensions
 import DisplayLink
 
 public struct PixelCanvasView<Foreground: View, Background: View>: View {
+    @Environment(\.displayScale) private var displayScale
     
     @Bindable private var pixelCanvas: PixelCanvas
     @State private var gestureCanvas = GestureCanvas()
@@ -87,10 +88,12 @@ public struct PixelCanvasView<Foreground: View, Background: View>: View {
             if !pixelCanvas.options.alwaysUseImageCanvas {
                 PixelCanvasZoomView(
                     image: content.image,
+                    mipmaps: content.mipmaps,
                     transform: PixelCanvas.transform(
                         contentResolution: content.resolution,
                         containerSize: size,
-                        coordinate: pixelCanvas.coordinate
+                        coordinate: pixelCanvas.coordinate,
+                        displayScale: displayScale
                     ),
                     options: pixelCanvas.options
                 )
